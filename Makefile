@@ -27,11 +27,15 @@ CXX = mpic++
 CC  = mpicc
 CPPFLAGS = -Wall -g -I$(INC) -O3 -c
 
-all: $(BIN)/floyd $(BIN)/crearEjemplos
+all: $(BIN)/floydSecuencial $(BIN)/floydParalelo1 $(BIN)/crearEjemplos
 
 # ************ Ejecutables ************
-$(BIN)/floyd: $(OBJ)/Graph.o $(OBJ)/floyd.o
-	@echo "Creando ./bin/floyd..."
+$(BIN)/floydSecuencial: $(OBJ)/Graph.o $(OBJ)/floydSecuencial.o
+	@echo "Creando ./bin/floydSecuencial..."
+	@$(CXX) -o $@ $^
+
+$(BIN)/floydParalelo1: $(OBJ)/Graph.o $(OBJ)/floydParalelo1.o
+	@echo "Creando ./bin/floydParalelo1..."
 	@$(CXX) -o $@ $^
 
 $(BIN)/crearEjemplos: $(OBJ)/Graph.o $(OBJ)/crearEjemplos.o
@@ -44,8 +48,12 @@ $(OBJ)/Graph.o: $(SRC)/Graph.cpp
 	@echo "Creando ./obj/Graph.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-$(OBJ)/floyd.o: $(SRC)/floyd.cpp
-	@echo "Creando ./obj/floyd.o..."
+$(OBJ)/floydSecuencial.o: $(SRC)/floydSecuencial.cpp
+	@echo "Creando ./obj/floydSecuencial.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/floydParalelo1.o: $(SRC)/floydParalelo1.cpp
+	@echo "Creando ./obj/floydParalelo1.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(OBJ)/crearEjemplos.o: $(SRC)/crearEjemplos.cpp

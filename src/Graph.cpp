@@ -14,6 +14,10 @@ void Graph::fija_nverts (const int & nverts)
     vertices = nverts;
 }
 
+Graph::~Graph(){
+    delete [] A;
+}
+
 void Graph::inserta_arista(const int &vertA, const int &vertB, const int &edge) // inserta A->B
 {
     A[vertA*vertices+vertB] = edge;
@@ -85,3 +89,16 @@ void Graph::lee(char *filename)
 	}
 }
 
+int * Graph::getPtrMatriz(){
+    return &A[0];
+}
+
+vector<int> Graph::getFilaK(int k){
+    vector<int> filak;
+
+    for(int i = 0; i<vertices; i++){
+        filak.push_back(A[k*vertices+i]);
+    }
+
+    return filak;
+}
