@@ -1,3 +1,3 @@
 # PPR
 
-## Practicas de la asignatura de Programacion Paralela
+### Practicas de la asignatura de Programacion Paralela
