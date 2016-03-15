@@ -5,7 +5,7 @@ Prácticas de la asignatura Programación Paralela cursada en el Grado en Inform
 
 ----------
 
-Glosario de Prácticas
+Índice de Prácticas
 -------------
 #### Práctica 1: Implementación distribuida de un algoritmo paralelo de datos usando MPI
 En esta práctica se aborda la implementación paralela del algoritmo de **Floyd** para el cálculo de todos los caminos más cortos en un grafo etiquetado.
