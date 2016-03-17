@@ -56,9 +56,6 @@ int main (int argc, char *argv[])
         MPI_COMM_WORLD
     );
 
-    // Iniciamos el cronometro
-    double t = MPI_Wtime();
-
     // Todos los procesos conocen i,j,k,vijk
     int i, j, k, vikj;
     
@@ -73,13 +70,17 @@ int main (int argc, char *argv[])
     for(i = 0; i<nverts; i++)
         filak[i] = 0;
     
+
+    // Iniciamos el cronometro
+    double t = MPI_Wtime();
+
     #if !COUT
-        cout.setstate(std::ios_base::failbit);
+        cout.setstate(ios_base::failbit);
     #endif
     cout << "P" << idProceso << endl;
     for(k = 0; k<nverts; k++)
     {
-        // Cada proceso debe mandar su fila k a todos
+        // Cada proceso debe mandar su filak a todos
         /*
         Ejemplo: P = 3 y N = 6
                     --------------------------
