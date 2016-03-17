@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <vector>
 #include "Graph.h"
 #include "mpi.h"
+
+#define COUT false
 
 using namespace std;
 
@@ -37,8 +38,11 @@ int main (int argc, char *argv[])
     // Todos los procesos deben de conocer el nverts
     MPI_Bcast(&nverts, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    int tamVectorLocal = (nverts*nverts)/numeroProcesos;
+    // Todos los procesos conocen su vector local
+    int tamVectorLocal = (nverts*nverts)/numeroProcesos,
+        tamFilaLocal = tamVectorLocal/nverts;
     int * vectorLocal = new int[tamVectorLocal];
+
 
     // Repartimos los valores del grafo entre los procesos
     MPI_Scatter(
@@ -60,21 +64,50 @@ int main (int argc, char *argv[])
     
     // Cada proceso tendra su correspondencia local de iteraciones
     int iLocalInicio = idProceso*(nverts/numeroProcesos),
-        iLocalFinal = (idProceso+1)*(nverts/numeroProcesos);
+        iLocalFinal = (idProceso+1)*(nverts/numeroProcesos),
+        idProcesoBloqueK = 0,
+        indicePartidaFilaK = 0;
+
+    // Todos los procesos conocen su filak
+    int * filak = new int[nverts];
+    for(i = 0; i<nverts; i++)
+        filak[i] = 0;
     
-    // Todos los procesos deben conocer la filak
-    vector<int> filak;
-    filak.resize(nverts, 0);
-    
+    #if !COUT
+        cout.setstate(std::ios_base::failbit);
+    #endif
+    cout << "P" << idProceso << endl;
     for(k = 0; k<nverts; k++)
     {
+        // Cada proceso debe mandar su fila k a todos
+        /*
+        Ejemplo: P = 3 y N = 6
+                    --------------------------
+            P = 0 k:0   -> indice 0 del vectorLocal de P0
+                  k:1   -> indice 6 del vectorLocal de P0
+                    --------------------------  
+            P = 1 k:2   -> indice 0 del vectorLocal de P1   
+                  k:3   -> indice 6 del vectorLocal de P1
+                    --------------------------
+            P = 2 k:4   -> indice 0 del vectorLocal de P2
+                  k:5   -> indice 6 del vectorLocal de P2
+                    --------------------------
+        */
+        idProcesoBloqueK = k / tamFilaLocal;
+        indicePartidaFilaK = (k*nverts)%tamVectorLocal;
         
-        if(idProceso == 0)
-            filak = G->getFilaK(k);
+        if(k >= iLocalInicio && k < iLocalFinal){
+            cout << "\tk: " << k << ", iLocalInicio: " << iLocalInicio << ", iLocalFinal: "<< iLocalFinal << endl;            
+            cout << "filak: ";
+            for(i = 0; i<nverts; i++){
+                filak[i] = vectorLocal[indicePartidaFilaK + i];
+                cout << filak[i] << ",";
+            }
+            cout << endl;
+        }
         
-        // Compartimos la fila k entre todos los procesos        
-        MPI_Bcast(&filak[0], nverts, MPI_INT, 0, MPI_COMM_WORLD);
-
+        MPI_Bcast(&filak[0], nverts, MPI_INT, idProcesoBloqueK, MPI_COMM_WORLD);
+        
         for(i = iLocalInicio; i<iLocalFinal; i++)
         {
             for(j = 0; j<nverts; j++)
@@ -87,9 +120,6 @@ int main (int argc, char *argv[])
                 }
             }
         }
-
-        if(idProceso == 0)
-            filak.clear();
     }
 
     // Recogemos todos los datos en P0
@@ -111,9 +141,12 @@ int main (int argc, char *argv[])
 
     if(idProceso == 0){
 
+        #if !COUT
+            cout.clear();
+        #endif
         cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
         G->imprime();
-        cout << endl << "Tiempo gastado= "<< t << endl << endl;
+        cout << endl << "Tiempo gastado = "<< t << endl << endl;
 
         // Elimino el puntero de ptrInicioMatriz
         ptrInicioMatriz = NULL;
@@ -122,6 +155,10 @@ int main (int argc, char *argv[])
         // Elimino el objeto grafo usando su destructor
         delete G;
     }
+
+    // Cada proceso elimina su filak y su vector local
+    delete [] filak;
+    delete [] vectorLocal;
 
     MPI_Finalize();  
 }

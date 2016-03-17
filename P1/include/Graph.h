@@ -22,7 +22,6 @@ class Graph
        	void imprime();
         void lee(char *filename);
         int * getPtrMatriz();
-        vector<int> getFilaK(int k);
 };
 
 #endif

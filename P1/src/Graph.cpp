@@ -93,12 +93,11 @@ int * Graph::getPtrMatriz(){
     return &A[0];
 }
 
-vector<int> Graph::getFilaK(int k){
-    vector<int> filak;
+int * Graph::getFilaK(int k){
+    int * filak = new int[vertices];
 
-    for(int i = 0; i<vertices; i++){
-        filak.push_back(A[k*vertices+i]);
-    }
-
-    return filak;
+    for(int i = 0; i<vertices; i++)
+        filak[i] = A[k*vertices+i];
+    
+    return &filak[0];
 }
