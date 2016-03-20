@@ -92,12 +92,3 @@ void Graph::lee(char *filename)
 int * Graph::getPtrMatriz(){
     return &A[0];
 }
-
-int * Graph::getFilaK(int k){
-    int * filak = new int[vertices];
-
-    for(int i = 0; i<vertices; i++)
-        filak[i] = A[k*vertices+i];
-    
-    return &filak[0];
-}

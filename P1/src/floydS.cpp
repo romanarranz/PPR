@@ -6,13 +6,26 @@
 
 using namespace std;
 
+void guardaEnArchivo(int n, double t)
+{
+    ofstream archivo ("output/floydS.dat" , ios_base::app | ios_base::out);
+    if (archivo.is_open())
+    {
+        archivo << to_string(n) + "\t" + to_string(t) + "\n";
+        archivo.close();
+    }
+    else
+        cout << "No se puede abrir el archivo";
+}
+
 int main (int argc, char *argv[])
 {
     MPI_Init(&argc, &argv);
     
-    if (argc != 2) {
+    if (argc != 2)
+    {
 	   cerr << "Sintaxis: " << argv[0] << " <archivo de grafo>" << endl;
-	   return(-1);
+	   return EXIT_FAILURE;
 	}
 
     Graph * G = new Graph();
@@ -48,6 +61,9 @@ int main (int argc, char *argv[])
     cout << endl << "EL Grafo con las distancias de los caminos más cortos es:" << endl << endl;
     G->imprime();
     cout << endl << "Tiempo gastado = "<< t << endl << endl;
+    guardaEnArchivo(nverts, t);
 
     delete G;
+
+    return EXIT_SUCCESS;
 }

@@ -8,6 +8,18 @@
 
 using namespace std;
 
+void guardaEnArchivo(int n, double t)
+{
+    ofstream archivo ("output/floyd1D.dat" , ios_base::app | ios_base::out);
+    if (archivo.is_open())
+    {
+        archivo << to_string(n) + "\t" + to_string(t) + "\n";
+        archivo.close();
+    }
+    else
+        cout << "No se puede abrir el archivo";
+}
+
 int main (int argc, char *argv[])
 {
     int numeroProcesos, idProceso;
@@ -22,27 +34,34 @@ int main (int argc, char *argv[])
     if (argc != 2) 
 	{
 	   cerr << "Sintaxis: " << argv[0] << " <archivo de grafo>" << endl;
-	   return(-1);
+	   return EXIT_FAILURE;
 	}
 
-    if(idProceso == 0){
+    if(idProceso == 0)
+    {
         G = new Graph();
         G->lee(argv[1]);		// Read the Graph
         cout << "EL Grafo de entrada es:"<<endl;
         G->imprime();
 
         nverts = G->vertices;
-        ptrInicioMatriz = G->getPtrMatriz();
+        ptrInicioMatriz = G->getPtrMatriz();        
     }
 
     // Todos los procesos deben de conocer el nverts
     MPI_Bcast(&nverts, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    if(nverts%numeroProcesos != 0)
+    {
+        cout << "P"<< idProceso<<" -> El numero de vertices no es divisible entre el numero de procesos" << endl;
+        MPI_Finalize();
+        return EXIT_SUCCESS;
+    }
+
     // Todos los procesos conocen su vector local
     int tamVectorLocal = (nverts*nverts)/numeroProcesos,
         tamFilaLocal = tamVectorLocal/nverts;
     int * vectorLocal = new int[tamVectorLocal];
-
 
     // Repartimos los valores del grafo entre los procesos
     MPI_Scatter(
@@ -96,11 +115,13 @@ int main (int argc, char *argv[])
         */
         idProcesoBloqueK = k / tamFilaLocal;
         indicePartidaFilaK = (k*nverts)%tamVectorLocal;
-        
-        if(k >= iLocalInicio && k < iLocalFinal){
+
+        if(k >= iLocalInicio && k < iLocalFinal)
+        {
             cout << "\tk: " << k << ", iLocalInicio: " << iLocalInicio << ", iLocalFinal: "<< iLocalFinal << endl;            
             cout << "filak: ";
-            for(i = 0; i<nverts; i++){
+            for(i = 0; i<nverts; i++)
+            {
                 filak[i] = vectorLocal[indicePartidaFilaK + i];
                 cout << filak[i] << ",";
             }
@@ -140,7 +161,8 @@ int main (int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(idProceso == 0){
+    if(idProceso == 0)
+    {
 
         #if !COUT
             cout.clear();
@@ -148,6 +170,8 @@ int main (int argc, char *argv[])
         cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
         G->imprime();
         cout << endl << "Tiempo gastado = "<< t << endl << endl;
+
+        guardaEnArchivo(nverts, t);
 
         // Elimino el puntero de ptrInicioMatriz
         ptrInicioMatriz = NULL;
@@ -162,4 +186,6 @@ int main (int argc, char *argv[])
     delete [] vectorLocal;
 
     MPI_Finalize();  
+
+    return EXIT_SUCCESS;
 }

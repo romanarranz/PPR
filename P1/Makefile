@@ -27,15 +27,23 @@ CXX = mpic++
 CC  = mpicc
 CPPFLAGS = -Wall -g -I$(INC) -O3 -c
 
-all: $(BIN)/floydSecuencial $(BIN)/floydParalelo1 $(BIN)/crearEjemplos
+MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
+CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
+
+all: $(BIN)/floydS $(BIN)/floyd1D $(BIN)/floyd2D $(BIN)/crearEjemplos
 
 # ************ Ejecutables ************
-$(BIN)/floydSecuencial: $(OBJ)/Graph.o $(OBJ)/floydSecuencial.o
-	@echo "Creando ./bin/floydSecuencial..."
+
+$(BIN)/floydS: $(OBJ)/Graph.o $(OBJ)/floydS.o
+	@echo "Creando ./bin/floydS..."
 	@$(CXX) -o $@ $^
 
-$(BIN)/floydParalelo1: $(OBJ)/Graph.o $(OBJ)/floydParalelo1.o
-	@echo "Creando ./bin/floydParalelo1..."
+$(BIN)/floyd1D: $(OBJ)/Graph.o $(OBJ)/floyd1D.o
+	@echo "Creando ./bin/floyd1D..."
+	@$(CXX) -o $@ $^
+
+$(BIN)/floyd2D: $(OBJ)/Graph.o $(OBJ)/floyd2D.o
+	@echo "Creando ./bin/floyd2D..."
 	@$(CXX) -o $@ $^
 
 $(BIN)/crearEjemplos: $(OBJ)/Graph.o $(OBJ)/crearEjemplos.o
@@ -48,21 +56,56 @@ $(OBJ)/Graph.o: $(SRC)/Graph.cpp
 	@echo "Creando ./obj/Graph.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-$(OBJ)/floydSecuencial.o: $(SRC)/floydSecuencial.cpp
-	@echo "Creando ./obj/floydSecuencial.o..."
+$(OBJ)/floydS.o: $(SRC)/floydS.cpp
+	@echo "Creando ./obj/floydS.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-$(OBJ)/floydParalelo1.o: $(SRC)/floydParalelo1.cpp
-	@echo "Creando ./obj/floydParalelo1.o..."
+$(OBJ)/floyd1D.o: $(SRC)/floyd1D.cpp
+	@echo "Creando ./obj/floyd1D.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/floyd2D.o: $(SRC)/floyd2D.cpp
+	@echo "Creando ./obj/floyd2D.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(OBJ)/crearEjemplos.o: $(SRC)/crearEjemplos.cpp
 	@echo "Creando ./obj/crearEjemplos.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-.PHONY: clean
+.PHONY: clean zip tar plot
 
 # ************ Limpieza ************
 clean:
 	@echo "Borrando ejecutables, objeto y cabeceras..."
 	@rm $(BIN)/* $(OBJ)/* $(SRC)/*~ $(INC)/*~ ./*~
+
+# ************ Compresion ************
+zip:
+	@echo "Creando "$(CURRENT_DIR)".zip..."
+	zip $(CURRENT_DIR) -r src obj input include enunciados bin
+
+tar:
+	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
+	tar -cvzf $(CURRENT_DIR).tar.gz src obj input include enunciados bin
+
+# ************ Grafica ************
+plot:
+	@echo "Creando grafica.png..."
+	@gnuplot <<< "\
+		set terminal png size 800,600 font 'Verdana,10'; \
+		set output 'grafica.png'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Algoritmo de Floyd'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de computo (seg)'; \
+		set key default; \
+		set xr [0.0:90]; \
+		set yr [0:0.01]; \
+		plot 'output/floydS.dat' using 1:2 title 'FloydS' with linespoints pt 7 ps 1, \
+		     'output/Floyd1D.dat' using 1:2 title 'Floyd1D' with linespoints pt 6 ps 1, \
+		     'output/Floyd2D.dat' using 1:2 title 'Floyd2D' with linespoints pt 7 ps 1"
