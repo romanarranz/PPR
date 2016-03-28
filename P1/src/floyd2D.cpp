@@ -85,8 +85,8 @@ int main (int argc, char *argv[])
             [    0     |   1     ]  P1 y P3 estan en la misma columna
                  ^         ^
     */
-    int idHorizontal = idProceso / sqrtP,
-        idVertical = idProceso % sqrtP,
+    int idVertical = idProceso / sqrtP,
+        idHorizontal = idProceso % sqrtP,
         idProcesoHorizontal,
         idProcesoVertical,
         numProcesosHorizontal,
@@ -107,9 +107,9 @@ int main (int argc, char *argv[])
 
     // <== EMPAQUETAR DATOS
     // ============================================>
-    MPI_Datatype bloque;
+    MPI_Datatype MPI_BLOQUE;
     int * bufferSalida = new int[nverts * nverts];
-    int filaSubmatriz, columnaSubmatriz, posInicio;
+    int filaSubmatriz, columnaSubmatriz, comienzo;
 
     if (idProceso == 0)
     {
@@ -119,23 +119,25 @@ int main (int argc, char *argv[])
             tamBloque,  // separador entre bloque y bloque
             nverts,     // cantidad de bloques que cogemos (filas)
             MPI_INT,    // tipo de dato origen
-            &bloque     // tipo de dato destino
+            &MPI_BLOQUE     // tipo de dato destino
         );
 
         // Se hace publico el nuevo tipo de dato
-        MPI_Type_commit(&bloque);
+        MPI_Type_commit(&MPI_BLOQUE);
 
         int posActualBuffer = 0;
+
+        // Empaqueta bloque a bloque en el buffer de envio
         for (int i = 0; i < numeroProcesos; i++)
         {
             filaSubmatriz = i / sqrtP;
             columnaSubmatriz = i % sqrtP;
-            posInicio = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
+            comienzo = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
 
             MPI_Pack(
-                G->getPtrMatriz() + posInicio,       // posicion de partida
+                G->getPtrMatriz() + comienzo,       // posicion de partida
                 1,                                  // numero de datos de entrada
-                bloque,                             // tipo de dato de los datos de entrada
+                MPI_BLOQUE,                             // tipo de dato de los datos de entrada
                 bufferSalida,                       // buffer de salida
                 sizeof(int) * nverts * nverts,      // tamaño del buffer de salida en bytes
                 &posActualBuffer,                   // posicion actual del buffer de salida en bytes
@@ -144,7 +146,7 @@ int main (int argc, char *argv[])
         }
 
         // Liberamos el tipo de dato creado
-        MPI_Type_free(&bloque);
+        MPI_Type_free(&MPI_BLOQUE);
     }
     
     // <== REPARTO DE LA MATRIZ A LOS PROCESOS
@@ -158,7 +160,7 @@ int main (int argc, char *argv[])
         sizeof(int) * tamBloque * tamBloque,    // Cantidad que se envia a cada proceso
         MPI_PACKED,                             // Tipo del dato que se enviara
         subMatriz,                              // Variable donde recibir los datos
-        sizeof(int) * tamBloque * tamBloque,    // Cantidad que recibe cada proceso
+        tamBloque * tamBloque,                  // Cantidad que recibe cada proceso
         MPI_INT,                                // Tipo del dato que se recibira
         0,                                      // Proceso que reparte los datos al resto (En este caso es P0)
         MPI_COMM_WORLD
@@ -261,25 +263,27 @@ int main (int argc, char *argv[])
     // ============================================>
     if (idProceso == 0)
     {
-        MPI_Type_vector(tamBloque, tamBloque, nverts, MPI_INT, &bloque);
-        MPI_Type_commit(&bloque);
+        MPI_Type_vector(tamBloque, tamBloque, nverts, MPI_INT, &MPI_BLOQUE);
+        MPI_Type_commit(&MPI_BLOQUE);
+        
+        int posicion = 0;
 
-        for (int i = 0, posicion = 0; i < numeroProcesos; i++) {
+        for (int i = 0; i < numeroProcesos; i++) {
             filaSubmatriz = i / sqrtP;
             columnaSubmatriz = i % sqrtP;
-            posInicio = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
+            comienzo = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
 
             MPI_Unpack(
                 bufferSalida,
                 sizeof(int) * nverts * nverts, 
                 &posicion,
-                G->getPtrMatriz() + posInicio,
+                G->getPtrMatriz() + comienzo,
                 1,
-                bloque, 
+                MPI_BLOQUE, 
                 MPI_COMM_WORLD
             );
         }
-        MPI_Type_free(&bloque); // Se libera el tipo bloque
+        MPI_Type_free(&MPI_BLOQUE); // Se libera el tipo bloque
     }
     
     if(idProceso == 0){
