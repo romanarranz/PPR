@@ -74,5 +74,18 @@ Inicialmente P0 contiene la matriz completa y procede a hacer un reparto de esta
  - Compilador c++: Apple LLVM version 7.3.0 (clang-703.0.29)
  - Compilador MPI: mpicxx Open MPI 1.6.5 (Language: C++)
 
+####*Tabla de tiempos y ganancia*
+
+| Tiempo | P = 1 (FloydS) | P = 4 (Floyd1D) | P = 4 (Floyd2D) | Ganancia (Floyd1D) | Ganancia (Floyd2D) |
+|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| n = 60 | 0.001842 | 0.001683 | 0.000411 |  |  |
+| n = 240 | 0.120560 | 0.025798 | 0.010350 |  |  |
+| n = 480 | 0.959641 | 0.179740 | 0.075400 |  |  |
+| n = 600 | 1.867405 | 0.357499 | 0.144144 |  |  |
+| n = 800 | 4.417744 | 0.876496 | 0.346687 |  |  |
+| n = 920 | 6.771146 | 1.326323 | 0.538065 |  |  |
+| n = 1000 | 8.750761 | 1.682442 | 0.706264 |  |  |
+| n = 1200 | 15.246722 | 3.006751 | 1.197015 |  |  |
+
 ![graficaP1](./grafica.png)
 
