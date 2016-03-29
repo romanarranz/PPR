@@ -61,10 +61,33 @@ for(k = 0; k<nverts; k++)
 	// ..........
 }
 ```
+
 Una vez que obtuve el proceso que se encargaba de ese bloque procedo a hacer la difusión de la *fila k*.
+
 ```c++
 MPI_Bcast(&filak[0], nverts, MPI_INT, idProcesoBloqueK, MPI_COMM_WORLD);
 ```
+
+####1.1.3 Acceso a los datos del vector local
+Al comienzo cuando realizaba el acceso a los valores del vector local obtenía errores por violación de segmento y esto se debía a que estaba accediendo a indices superiores que no estaban definidos en el propio vector.
+Para solucionarlo hice operaciones modulo tamaño del vector.
+```c++
+for(i = iLocalInicio; i<iLocalFinal; i++)
+{
+	for(j = 0; j<nverts; j++)
+    {
+	    // no iterar sobre la diagonal de la matriz
+	    if (i!=j && i!=k && j!=k) 
+        {   
+	        vikj = vectorLocal[(i*nverts)%tamVectorLocal + k] + filak[j];
+            vikj = min(vikj, vectorLocal[(i * nverts)%tamVectorLocal + j]);
+            vectorLocal[(i*nverts)%tamVectorLocal + j] = vikj;
+         }
+	}
+}
+```
+
+Seguramente con una implementación con matrices no hubiera tenido este tipo de problemas, por ello en la versión 2D usé matrices.
 
 ##2. Versión 2D. Distribución por submatrices
 La implementación de esta versión está dentro de la carpeta Floyd-2.
@@ -78,12 +101,131 @@ En cada etapa k del algoritmo los procesos necesitan saber ***N/sqrtP*** valores
  - La columna k será repartida al resto de procesos de la misma fila de la malla de procesos.
  - La fila k será repartida al resto de procesos de la misma columna de la malla de procesos.
 
-### 2.1 Problemas encontrados  y su resolución
+Dentro del guión de la práctica se facilitaba el código para realizar el **empaquetado** de los datos. Este proceso solo podía ser realizado por **P0** y de este proceso obteníamos como resultado un buffer de salida relleno con los datos de las submatrices de cada proceso.
+
+### 2.1 Problemas encontrados y su resolución
 #### 2.1.1 Comunicadores
 Para completar la tarea de que se pueda repartir la columna k entre el resto de procesos de la misma malla y se pueda repartir la fila k entre el resto de procesos de la misma columna, necesitamos usar comunicadores, para asignar un nuevo identificador a los procesos dentro de los comunicadores.
 
+La misión de los comunicadores consistió en etiquetar los procesos atendiendo a las necesidades que describimos anteriormente.
+
+Las asignaciones de etiquetas quedaron de la siguiente forma:
+
+```c++
+/* Para una matriz de 9x9 si contamos con 9 procesos para formar una malla tendríamos un reparto lógico de la siguiente forma: */
+[	P0	,	P1	,	P2	]
+[	P3	,	P4	,	P5	]
+[	P6	,	P7	,	P8	]
+
+/* Etiquetado vertical de los procesos, de esta manera accedemos a todos los procesos que tengan la etiqueta 0 de este comunicador, que serian P0 P3 y P6, lo mismo pasa con los de las etiquetas 1 y 2*/
+[	0	,	1	,	2	]
+[	0	,	1	,	2	]
+[	0	,	1	,	2	]
+
+/* Etiquetado horizontal de los procesos, de esta manera accedemos a todos los procesos que tengan la etiqueta 0 de este comunicador, que serian P0 P1 y P2, lo mismo pasa con los de las etiquetas 1 y 2*/
+[	0	,	0	,	0	]
+[	1	,	1	,	1	]
+[	2	,	2	,	2	]
+```
+
+Para lograr que quedasen etiquetados de esta manera tuve que asignarles su nueva etiqueta con el siguiente calculo:
+
+```c++
+int idHorizontal = idProceso / sqrtP;
+int idVertical = idProceso % sqrtP;
+```
+
+
 #### 2.1.2 Reparto de bloques
-Inicialmente P0 contiene la matriz completa y procede a hacer un reparto de esta al resto de procesos asignándole a cada uno un bloque de tamaño ***N/sqrtP*** * ***N/sqrtP***. Los desplazamientos entre bloque y bloque será de un tamaño *N*.
+Inicialmente P0 contiene la matriz completa y procede a hacer un reparto de esta al resto de procesos asignándole a cada uno un bloque de tamaño ***N/sqrtP*** * ***N/sqrtP***. 
+
+Como obtuvimos como resultado un **buffer de envío** durante el proceso de empaquetado, ya solo quedaba repartir estos datos que estaban preparados a cada proceso.
+
+Para ello hice un **Scatter** :
+```c++
+MPI_Scatter(
+	bufferSalida,                         // Valores a repartir
+    sizeof(int) * tamBloque * tamBloque,  // Cantidad que se envia a cada proceso
+	MPI_PACKED,                           // Tipo del dato que se enviara
+	subMatriz,                            // Variable donde recibir los datos
+	tamBloque * tamBloque,                // Cantidad que recibe cada proceso
+     MPI_INT,                             // Tipo del dato que se recibira
+     0,                                   // Proceso que reparte los datos al resto (En este caso es P0)
+     MPI_COMM_WORLD
+);
+```
+Una vez que todos los procesos tienen almacenado en su matriz local los datos se puede proceder a realizar el algoritmo.
+
+#### 2.1.3 Indices locales a globales
+Nos surge un problema a la hora de comprobar que no se itere sobre la diagonal de la **matriz ¡¡COMPLETA!!** y esto es porque estamos utilizando indices locales de cada **matriz LOCAL** de cada proceso.
+
+Para solucionar esto necesitamos pasar esos indices locales de cada proceso a indices globales y una vez obtenidos estos podremos verificar que no estemos pasando por la diagonal de la **matriz COMPLETA**.
+
+Podemos decir que un indice **iGlobal = i + iDesplazamiento** y que un indice **jGlobal = j + jDesplazamiento**, de forma análoga obtenemos *iLocal = i - iDesplazamiento* y *jLocal = j - jDesplazamiento*.
+
+```c++
+for(i = 0; i<tamBloque; i++)
+{
+	iGlobal = iLocalInicio + i;    
+	for(j = 0; j<tamBloque; j++)
+	{
+		jGlobal = jLocalInicio + j;
+		// no iterar sobre la diagonal (celdas a 0)
+		if (iGlobal != jGlobal && iGlobal != k && jGlobal != k) 
+		{   
+			//...
+		}
+	}
+}
+```
+
+#### 2.1.4 Acceso a los datos de las submatrices
+Como comenté en el [punto 1.1.3 Acceso a los datos del vector local](#113-acceso-a-los-datos-del-vector-local) fue un engorro tener que calcular usando operaciones modulo la posición del elemento i-ésimo, j-ésimo o k-ésimo utilizando un vector contiguo, por ello en esta ocasión me decanté por usar una matriz; de esta forma los accesos a los elementos de la matriz local de cada proceso quedan de esta forma:
+
+```c++
+vikj = columnak[i] + filak[j];
+vikj = min(vikj, subMatriz[i][j]);
+subMatriz[i][j] = vikj;
+```
+
+#### 2.1.5 Reunir resultados
+Cada proceso tiene que enviar sus datos de vuelta a la **matriz COMPLETA** que conforma la solución del problema. Para ello realicé un **Gather** pero en esta ocasión los datos de entrada es la *submatriz* y el buffer de salida es el que irá acto seguido al **Unpack**.
+
+```c++
+MPI_Gather(
+	subMatriz,
+	tamBloque * tamBloque,
+	MPI_INT,
+	bufferSalida,
+	sizeof(int) * tamBloque * tamBloque,
+	MPI_PACKED,
+	0,
+	MPI_COMM_WORLD
+);
+```
+
+Uno de los problemas que me encontré al realizar el Gather fue que desconocía que había que especificar el **sizeof(int)** en la cantidad de datos que recibe el **buffer de salida** del tipo *MPI_PACKED*, hay que indicarlo explícitamente.
+Caso contrario es **submatriz** como elemento de entrada que no es necesario indicarle el *sizeof(int)* y esto es porque el tipo que tiene es *MPI_INT*.
+
+#### 2.1.6 Desempaquetar el buffer de salida
+Durante este proceso tuve que volver a definir el tipo de dato especial MPI_BLOQUE ya que **Unpack** que es la operación que se va a encargar de poner de forma ordenada los datos (que es como estaban al principio, antes de hacer el **Pack**) dentro de la matriz COMPLETA que reside en el Grafo.
+
+Los errores que me surgieron en esta sección fueron que olvidé de nuevo el **sizeof(int)** para indicar el numero de elementos que tenía el **buffer de salida**.
+
+Y la operación quedó así:
+```c++
+MPI_Unpack(
+	bufferSalida,
+	sizeof(int) * nverts * nverts, 
+	&posicion,
+	G->getPtrMatriz() + comienzo,
+	1,
+	MPI_BLOQUE, 
+	MPI_COMM_WORLD
+);
+```
+
+
 
 ##3. Resultados
 ####*Información del equipo*
@@ -119,7 +261,6 @@ La ganancia se puede expresar como la relación entre el tiempo secuencias y el 
 | n = 1000 | 8.750761 | 1.682442 | 0.706264 | 0.0000 | 0.0000 |
 | n = 1200 | 15.246722 | 3.006751 | 1.197015 | 0.0000 | 0.0000 |
 
-![graficaP1_1](./grafica.png)
-![graficaP1_2](./ganancia.png)
+![graficaP1](./grafica.png)
 
 Como se puede observar tanto en la tabla como en las gráficas los tiempos recogidos por los algoritmos paralelos consumen mucho menos tiempo que el secuenciasl y presentan una ganancia de hasta un 500% por encima.
