@@ -10,7 +10,7 @@ Los datos de entrada que tenemos son los siguientes: 60, 240, 480, 600, 800, 920
 
 ----------
 
-####1. Versión 1D. Distribución por bloques
+##1. Versión 1D. Distribución por bloques
 
 La implementación de esta versión está dentro de la carpeta Floyd-1.
 En esta versión realizaremos una distribución por bloques de filas, asumimos que el número de vértices *N* es múltiplo del número de procesos *P*.
@@ -34,17 +34,45 @@ La **fila k** debe ser conocida por todos los procesos, por lo tanto cada proces
 
 Para la resolución de esta versión tendremos que hacer un reparto de la matriz mediante un ***Scatter***,  acto seguido durante la ejecución del algoritmo de cada proceso tendremos que hacer un ***Broadcast*** y por último tendremos que reunir todos los resultados obtenidos por cada uno de los procesos nuevamente en la matriz, para ello usaremos ***Gather***.
 
+### 1.1 Problemas
+####1.1.1 Indices locales a globales
 
-####2. Versión 2D. Distribución por submatrices
+####1.1.2 Broadcast fila k
+
+
+
+##2. Versión 2D. Distribución por submatrices
 La implementación de esta versión está dentro de la carpeta Floyd-2.
 En esta versión realizaremos una distribución por bloques bidimensionales o 2D, asumimos que el número de vértices *N* es múltiplo de la raíz del número de procesos *P*.
 
 Suponemos que los procesos se organizan lógicamente formando una malla cuadrada con ***sqrtP*** procesos en cada fila y columna. De tal forma que tendremos un bloque por cada proceso de ***N/sqrtP*** filas y cada una de ellas con ***N/sqrtP*** elementos.
 
+
 En cada etapa k del algoritmo los procesos necesitan saber ***N/sqrtP*** valores de la ***fila k*** y ***columna k***, estos valores estarán dentro del bloque de otros dos procesos, la *fila k* dentro de uno y la *columa k* dentro de otro. Para que los procesos conozcan la *columna k* y *fila k* tendrán que realizarse dos ***Broadcast*** :
 
  - La columna k será repartida al resto de procesos de la misma fila de la malla de procesos.
  - La fila k será repartida al resto de procesos de la misma columna de la malla de procesos.
+
+### 2.1 Problemas
+#### 2.1.1 Comunicadores
+Para completar la tarea de que se pueda repartir la columna k entre el resto de procesos de la misma malla y se pueda repartir la fila k entre el resto de procesos de la misma columna, necesitamos usar comunicadores, para asignar un nuevo identificador a los procesos dentro de los comunicadores.
+
+#### 2.1.2 Reparto de bloques
+Inicialmente P0 contiene la matriz completa y procede a hacer un reparto de esta al resto de procesos asignándole a cada uno un bloque de tamaño ***N/sqrtP*** * ***N/sqrtP***. Los desplazamientos entre bloque y bloque será de un tamaño *N*.
+
+##3. Resultados
+####*Información del equipo*
+ - Nombre del modelo: MacBook Pro
+ - Nombre del procesador: Intel Core i5
+ - Velocidad del procesador: 2,7GHz
+ - Cantidad de procesadores: 1
+ - Cantidad total de núcleos: 2
+ - Caché de nivel 2 (por núcleo): 256KB
+ - Caché de nivel 3: 3MB
+ - Memoria: 8GB
+ - SO: Darwin Kernel Version 15.4.0 (64bits)
+ - Compilador c++: Apple LLVM version 7.3.0 (clang-703.0.29)
+ - Compilador MPI: mpicxx Open MPI 1.6.5 (Language: C++)
 
 ![graficaP1](./grafica.png)
 
