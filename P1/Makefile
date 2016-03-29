@@ -30,7 +30,7 @@ CPPFLAGS = -Wall -g -I$(INC) -O3 -c
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
 
-all: $(BIN)/floydS $(BIN)/floyd1D $(BIN)/floyd2D $(BIN)/crearEjemplos
+all: $(BIN)/floydS $(BIN)/floyd1D $(BIN)/floyd2D $(BIN)/floyd2D_2 $(BIN)/crearEjemplos
 
 # ************ Ejecutables ************
 
@@ -44,6 +44,10 @@ $(BIN)/floyd1D: $(OBJ)/Graph.o $(OBJ)/floyd1D.o
 
 $(BIN)/floyd2D: $(OBJ)/Graph.o $(OBJ)/floyd2D.o
 	@echo "Creando ./bin/floyd2D..."
+	@$(CXX) -o $@ $^
+
+$(BIN)/floyd2D_2: $(OBJ)/Graph.o $(OBJ)/floyd2D_2.o
+	@echo "Creando ./bin/floyd2D_2..."
 	@$(CXX) -o $@ $^
 
 $(BIN)/crearEjemplos: $(OBJ)/Graph.o $(OBJ)/crearEjemplos.o
@@ -68,6 +72,10 @@ $(OBJ)/floyd2D.o: $(SRC)/floyd2D.cpp
 	@echo "Creando ./obj/floyd2D.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
+$(OBJ)/floyd2D_2.o: $(SRC)/floyd2D_2.cpp
+	@echo "Creando ./obj/floyd2D_2.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+	
 $(OBJ)/crearEjemplos.o: $(SRC)/crearEjemplos.cpp
 	@echo "Creando ./obj/crearEjemplos.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
