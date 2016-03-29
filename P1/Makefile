@@ -128,7 +128,7 @@ plot:
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Algoritmo de Floyd'; \
+		set title 'Ganancia Floyd Paralelo frente a Secuencial'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Ganancia (S)'; \
 		set key default; \

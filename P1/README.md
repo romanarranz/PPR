@@ -193,14 +193,14 @@ Cada proceso tiene que enviar sus datos de vuelta a la **matriz COMPLETA** que c
 
 ```c++
 MPI_Gather(
-	subMatriz,
-	tamBloque * tamBloque,
-	MPI_INT,
-	bufferSalida,
-	sizeof(int) * tamBloque * tamBloque,
-	MPI_PACKED,
-	0,
-	MPI_COMM_WORLD
+	subMatriz,              // datos de entrada
+	tamBloque * tamBloque,  // cantidad de datos de entrada
+	MPI_INT,                // tipo de los datos de entrada
+	bufferSalida,           // datos de salida
+	sizeof(int) * tamBloque * tamBloque,  // cantidad de datos de salida
+	MPI_PACKED,             // tipo de los datos de salida
+	0,                      // proceso encargado
+	MPI_COMM_WORLD          // dentro del comunicador global
 );
 ```
 
@@ -215,12 +215,12 @@ Los errores que me surgieron en esta sección fueron que olvidé de nuevo el **s
 Y la operación quedó así:
 ```c++
 MPI_Unpack(
-	bufferSalida,
-	sizeof(int) * nverts * nverts, 
-	&posicion,
-	G->getPtrMatriz() + comienzo,
-	1,
-	MPI_BLOQUE, 
+	bufferSalida,                   // datos de entrada
+	sizeof(int) * nverts * nverts,  // cantidad de datos de entrada
+	&posicion,                      // puntero que lleva el indice por el que va bufferSalida, cada vez que se incrementa en una cantidad del tamBloque este indice queda incrementado también
+	G->getPtrMatriz() + comienzo,   // puntero a la posición donde vamos a copiar los datos ya ordenados en cada desempaquetado
+	1,                              // cantidad de bloques
+	MPI_BLOQUE,                     // tipo de los datos 
 	MPI_COMM_WORLD
 );
 ```
@@ -252,15 +252,22 @@ La ganancia se puede expresar como la relación entre el tiempo secuencias y el 
 
 | Tamaño | P = 1 (FloydS) | P = 4 (Floyd1D) | P = 4 (Floyd2D) | Ganancia (Floyd1D) | Ganancia (Floyd2D) |
 |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
-| n = 60 | 0.001842 | 0.001683 | 0.000411 | 0.0000 | 0.0000 |
-| n = 240 | 0.120560 | 0.025798 | 0.010350 | 0.0000 |  0.0000 |
-| n = 480 | 0.959641 | 0.179740 | 0.075400 | 0.0000 | 0.0000 |
-| n = 600 | 1.867405 | 0.357499 | 0.144144 | 0.0000 | 0.0000 |
-| n = 800 | 4.417744 | 0.876496 | 0.346687 | 0.0000 | 0.0000 |
-| n = 920 | 6.771146 | 1.326323 | 0.538065 | 0.0000 | 0.0000 |
-| n = 1000 | 8.750761 | 1.682442 | 0.706264 | 0.0000 | 0.0000 |
-| n = 1200 | 15.246722 | 3.006751 | 1.197015 | 0.0000 | 0.0000 |
+| n = 60 | 0.000809 | 0.001683 | 0.000411 | 0.48068924539512775 | 1.9683698296836982 |
+| n = 240 | 0.047861 | 0.025798 | 0.010350 | 1.8552213349872082 |  4.624251207729468 |
+| n = 480 | 0.373224 | 0.179740 | 0.075400 | 2.0764660064537663 | 4.949920424403183 |
+| n = 600 | 0.748859 | 0.357499 | 0.144144 | 2.09471634885692 | 5.195214507714509 |
+| n = 800 | 1.794203 | 0.876496 | 0.346687 | 2.047017898541465 | 5.175282026727278 |
+| n = 920 | 2.793257 | 1.326323 | 0.538065 | 2.106015653803787 | 5.191300307583656
+ |
+| n = 1000 | 3.571158 | 1.682442 | 0.706264 | 2.1226039292884984 | 5.056406669460712 |
+| n = 1200 | 6.215353 | 3.006751 | 1.197015 | 2.067132595948251 | 5.192376870799447 |
 
-![graficaP1](./grafica.png)
+####*Grafica de tiempos obtenidos en la tabla*
+![graficaP1_1](./grafica.png)
 
-Como se puede observar tanto en la tabla como en las gráficas los tiempos recogidos por los algoritmos paralelos consumen mucho menos tiempo que el secuenciasl y presentan una ganancia de hasta un 500% por encima.
+####*Grafica de ganancia obtenidas en la tabla*
+![graficaP1_2](./ganancia.png)
+
+Como se puede observar tanto en la tabla como en las gráficas los tiempos recogidos por los algoritmos paralelos consumen mucho menos tiempo que el secuenciasl y presentan una ganancia de hasta un 420% por encima.
+
+

@@ -134,6 +134,7 @@ int main (int argc, char *argv[])
         {
             for(j = 0; j<nverts; j++)
             {
+                // no iterar sobre la diagonal de la matriz
                 if (i!=j && i!=k && j!=k) 
                 {   
                     vikj = vectorLocal[(i*nverts)%tamVectorLocal + k] + filak[j];

@@ -240,7 +240,8 @@ int main (int argc, char *argv[])
             for(j = 0; j<tamBloque; j++)
             {
                 jGlobal = jLocalInicio + j;
-                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)  // No iterar sobre celdas de valor 0
+                // no iterar sobre la diagonal de la matriz (celdas a 0)
+                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)
                 {   
                     vikj = columnak[i] + filak[j];
                     vij = (i*tamBloque)%tamSubmatriz + j;
