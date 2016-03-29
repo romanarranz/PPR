@@ -41,6 +41,7 @@ En esta versión realizaremos una distribución por bloques bidimensionales o 2D
 
 Suponemos que los procesos se organizan lógicamente formando una malla cuadrada con ***sqrtP*** procesos en cada fila y columna. De tal forma que tendremos un bloque por cada proceso de ***N/sqrtP*** filas y cada una de ellas con ***N/sqrtP*** elementos.
 
+<<<<<<< HEAD
 
 En cada etapa k del algoritmo los procesos necesitan saber ***N/sqrtP*** valores de la ***fila k*** y ***columna k***, estos valores estarán dentro del bloque de otros dos procesos, la *fila k* dentro de uno y la *columa k* dentro de otro. Para que los procesos conozcan la *columna k* y *fila k* tendrán que realizarse dos ***Broadcast*** :
 
@@ -48,4 +49,5 @@ En cada etapa k del algoritmo los procesos necesitan saber ***N/sqrtP*** valores
  - La fila k será repartida al resto de procesos de la misma columna de la malla de procesos.
 
 ![graficaP1](./grafica.png)
+>>>>>>> origin/master
 
