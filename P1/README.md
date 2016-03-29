@@ -261,10 +261,10 @@ La ganancia se puede expresar como la relación entre el tiempo secuencias y el 
 | n = 1000 | 3.571158 | 1.682442 | 0.706264 | 2.1226039292884984 | 5.056406669460712 |
 | n = 1200 | 6.215353 | 3.006751 | 1.197015 | 2.067132595948251 | 5.192376870799447 |
 
-####*Grafica de tiempos obtenidos en la tabla*
+####*Grafica de tiempos obtenidos en la [tabla](#tabla-de-tiempos-y-ganancia)*
 ![graficaP1_1](./grafica.png)
 
-####*Grafica de ganancia obtenidas en la tabla*
+####*Grafica de ganancia obtenidas en la [tabla](#tabla-de-tiempos-y-ganancia)*
 ![graficaP1_2](./ganancia.png)
 
 Como se puede observar tanto en la tabla como en las gráficas los tiempos recogidos por los algoritmos paralelos consumen mucho menos tiempo que el secuenciasl y presentan una ganancia de hasta un 420% por encima.

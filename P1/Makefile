@@ -113,7 +113,7 @@ plot:
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
 		set xr [0.0:1200]; \
-		set yr [0:16]; \
+		set yr [0:7]; \
 		plot 'output/floydS.dat' using 1:2 title 'FloydS' with linespoints pt 7 ps 1, \
 		     'output/Floyd1D.dat' using 1:2 title 'Floyd1D' with linespoints pt 6 ps 1, \
 		     'output/Floyd2D.dat' using 1:2 title 'Floyd2D' with linespoints pt 7 ps 1"
