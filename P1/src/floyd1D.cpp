@@ -4,7 +4,7 @@
 #include "Graph.h"
 #include "mpi.h"
 
-#define COUT false
+#define COUT true
 
 using namespace std;
 

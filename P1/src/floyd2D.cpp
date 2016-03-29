@@ -38,6 +38,9 @@ int main (int argc, char *argv[])
 	   return EXIT_FAILURE;
 	}
 
+    #if !COUT
+        cout.setstate(ios_base::failbit);
+    #endif
     if(idProceso == 0){
         G = new Graph();
         G->lee(argv[1]);
@@ -103,18 +106,18 @@ int main (int argc, char *argv[])
     // <== EMPAQUETAR DATOS
     // ============================================>
     MPI_Datatype MPI_BLOQUE;
-    int * bufferSalida = new int[nverts * nverts];
-    int filaSubmatriz, columnaSubmatriz, comienzo;
+    int bufferSalida[nverts*nverts];
+    int filaSubmatriz, columnaSubmatriz, comienzo;    
 
     if (idProceso == 0)
     {
         // Definimos bloque como una matriz cuadrada de tamaño tamBloque
-        MPI_Type_vector(
+        MPI_Type_vector( 
             tamBloque,  // tamaño del bloque
             tamBloque,  // separador entre bloque y bloque
             nverts,     // cantidad de bloques que cogemos (filas)
             MPI_INT,    // tipo de dato origen
-            &MPI_BLOQUE     // tipo de dato destino
+            &MPI_BLOQUE // tipo de dato destino
         );
 
         // Se hace publico el nuevo tipo de dato
@@ -130,13 +133,13 @@ int main (int argc, char *argv[])
             comienzo = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
 
             MPI_Pack(
-                G->getPtrMatriz() + comienzo,       // posicion de partida
-                1,                                  // numero de datos de entrada
-                MPI_BLOQUE,                         // tipo de dato de los datos de entrada
-                bufferSalida,                       // buffer de salida
-                sizeof(int) * nverts * nverts,      // tamaño del buffer de salida en bytes
-                &posActualBuffer,                   // posicion actual del buffer de salida en bytes
-                MPI_COMM_WORLD
+                G->getPtrMatriz() + comienzo,   // posicion de partida
+                1,                              // numero de datos de entrada
+                MPI_BLOQUE,                     // tipo de dato de los datos de entrada
+                bufferSalida,                   // buffer de salida
+                sizeof(int) * nverts * nverts,  // tamaño del buffer de salida en bytes
+                &posActualBuffer,               // posicion actual del buffer de salida en bytes
+                MPI_COMM_WORLD          
             );
         }
 
@@ -146,9 +149,8 @@ int main (int argc, char *argv[])
     
     // <== REPARTO DE LA MATRIZ A LOS PROCESOS
     // ============================================>
-    int * subMatriz = new int[tamBloque * tamBloque],
-          tamSubmatriz = tamBloque * tamBloque;
-
+    int subMatriz[tamBloque][tamBloque];
+    
     // Repartimos los valores del grafo entre los procesos
     MPI_Scatter(
         bufferSalida,                           // Valores a compartir
@@ -159,11 +161,11 @@ int main (int argc, char *argv[])
         MPI_INT,                                // Tipo del dato que se recibira
         0,                                      // Proceso que reparte los datos al resto (En este caso es P0)
         MPI_COMM_WORLD
-    );
+    );    
 
     // <== FLOYD
     // ============================================>  
-    int i, j, k, vij, vikj, iGlobal, jGlobal,
+    int i, j, k, vikj, iGlobal, jGlobal,
         // Principio y fin filas del proceso
         iLocalInicio = idHorizontal * tamBloque, 
         iLocalFinal = (idHorizontal + 1) * tamBloque,
@@ -173,8 +175,7 @@ int main (int argc, char *argv[])
         idProcesoBloqueK = 0,
         indicePartidaFilaK = 0;
 
-    int * filak = new int[tamBloque],
-        * columnak = new int[tamBloque];
+    int * filak = new int[tamBloque], * columnak = new int[tamBloque];
     
     for(i = 0; i<tamBloque; i++)
     {
@@ -185,49 +186,22 @@ int main (int argc, char *argv[])
     // Iniciamos el cronometro
     double t = MPI_Wtime();
 
-    #if !COUT
-        cout.setstate(ios_base::failbit);
-    #endif
-    
-    string imprime;
-
     for(k = 0; k<nverts; k++)
     {
         // idHorizontal y idVertical del comunicador horizontal y vertical
         idProcesoBloqueK = k / tamBloque;
-        indicePartidaFilaK = (k*tamBloque) % tamSubmatriz;
+        indicePartidaFilaK = k % tamBloque;
 
         if (k >= iLocalInicio && k < iLocalFinal)
         {
-            imprime = "P"+to_string(idProceso)+", k="+to_string(k)+"\n\t";
-            for(int i = 0; i<tamSubmatriz; i++)
-            {
-                imprime += to_string(subMatriz[i])+",";
-            }
-            imprime += "\n";
-            cout << imprime;
-
-            //imprime = "\tiIniLocal:"+to_string(iLocalInicio)+"   P"+to_string(idProceso)+" filak:"+to_string(k)+" -> ";
-            //copy(&subMatriz[indicePartidaFilaK], &subMatriz[indicePartidaFilaK] + tamBloque, &filak[0]);
-            for(i = 0; i<tamBloque; i++)
-            {            
-                filak[i] = subMatriz[indicePartidaFilaK + i];
-                imprime += to_string(filak[i])+",";
-            }
-            imprime += "\n";
-            //cout << imprime;
+            copy(subMatriz[indicePartidaFilaK], subMatriz[indicePartidaFilaK] + tamBloque, filak);
         }
         
         if (k >= jLocalInicio && k < jLocalFinal)
         {
-            imprime = "\t columnak:"+to_string(k)+" -> ";
-            for (i = 0; i < tamBloque*tamBloque; i+=tamBloque)
-            {
-                columnak[i] = subMatriz[k%tamBloque + i];
-                imprime += to_string(columnak[i])+",";
-            }
-            imprime += "\n";
-            //cout << imprime;
+            for (i = 0; i < tamBloque; i++)            
+                columnak[i] = subMatriz[i][indicePartidaFilaK];
+            
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -240,13 +214,12 @@ int main (int argc, char *argv[])
             for(j = 0; j<tamBloque; j++)
             {
                 jGlobal = jLocalInicio + j;
-                // no iterar sobre la diagonal de la matriz (celdas a 0)
-                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)
+                // no iterar sobre la diagonal (celdas a 0)
+                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k) 
                 {   
                     vikj = columnak[i] + filak[j];
-                    vij = (i*tamBloque)%tamSubmatriz + j;
-                    vikj = min(vikj, subMatriz[vij]);
-                    subMatriz[vij] = vikj;
+                    vikj = min(vikj, subMatriz[i][j]);
+                    subMatriz[i][j] = vikj;
                 }
             }
         }
@@ -259,16 +232,7 @@ int main (int argc, char *argv[])
 
     // <== RECOPILAR LOS RESULTADOS
     // ====================================>
-    MPI_Gather(
-        subMatriz,
-        tamBloque * tamBloque,
-        MPI_INT,
-        bufferSalida,
-        sizeof(int) * tamBloque * tamBloque,
-        MPI_PACKED,
-        0,
-        MPI_COMM_WORLD
-    );
+    MPI_Gather( subMatriz, tamBloque * tamBloque, MPI_INT, bufferSalida, sizeof(int) * tamBloque * tamBloque, MPI_PACKED, 0, MPI_COMM_WORLD );
 
     // <== DESEMPAQUETAR DATOS
     // ============================================>
@@ -285,25 +249,29 @@ int main (int argc, char *argv[])
             comienzo = columnaSubmatriz * tamBloque + filaSubmatriz * tamBloque * tamBloque * sqrtP;
 
             MPI_Unpack(
-                bufferSalida,
-                sizeof(int) * nverts * nverts, 
-                &posicion,
-                G->getPtrMatriz() + comienzo,
-                1,
-                MPI_BLOQUE, 
+                bufferSalida,                       // buffer de entrada
+                sizeof(int) * nverts * nverts,      // cantidad de elementos (en bytes)
+                &posicion,                          // posicion actual del buffer de entrada (en bytes)
+                G->getPtrMatriz() + comienzo,       // buffer de salida
+                1,                                  // cantidad de elementos a desempaquetar
+                MPI_BLOQUE,                         // tipo de los elementos a desempaquetar
                 MPI_COMM_WORLD
             );
         }
-        MPI_Type_free(&MPI_BLOQUE); // Se libera el tipo bloque
-    }
-    
-    if(idProceso == 0){
 
+        // Liberamos el tipo de dato creado
+        MPI_Type_free(&MPI_BLOQUE);
+    }
+
+    // <== MOSTRAR RESULTADOS
+    // ============================================>  
+    if(idProceso == 0){
+        
+        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
+        G->imprime();
         #if !COUT
             cout.clear();
         #endif
-        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
-        G->imprime();
         cout << endl << "Tiempo gastado = "<< t << endl << endl;
 
         guardaEnArchivo(nverts, t);
@@ -316,13 +284,10 @@ int main (int argc, char *argv[])
         delete G;
     }
 
-    // Cada proceso elimina su datos locales
+    MPI_Finalize();
+    
     delete [] filak;
     delete [] columnak;
-    delete [] subMatriz;
-    delete [] bufferSalida;
-
-    MPI_Finalize(); 
 
     return EXIT_SUCCESS; 
 }
