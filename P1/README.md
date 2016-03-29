@@ -34,12 +34,37 @@ La **fila k** debe ser conocida por todos los procesos, por lo tanto cada proces
 
 Para la resolución de esta versión tendremos que hacer un reparto de la matriz mediante un ***Scatter***,  acto seguido durante la ejecución del algoritmo de cada proceso tendremos que hacer un ***Broadcast*** y por último tendremos que reunir todos los resultados obtenidos por cada uno de los procesos nuevamente en la matriz, para ello usaremos ***Gather***.
 
-### 1.1 Problemas
-####1.1.1 Indices locales a globales
+### 1.1 Problemas encontrados y su resolución
+####1.1.1 Indices globales a locales
+El problema que se nos presenta fue hallar el indice de partida de la *fila k* ya que en mi implementación no usé matrices sino que usé un **vector** de tamaño ***(nverts\*nverts)/numeroProcesos***, por lo tanto para obtener los indices en cada etapa k tuve que hacer lo siguiente: 
+```c++
+indicePartidaFilaK = (k*nverts)%tamVectorLocal;
+```
+Una vez que obtuve el indice desde donde comenzaba la fila k de ese proceso tuve que rellenar el vector de la fila k para poder hacer un *Broadcast* de este. Y para rellenarlo tuve que hacer uso del desplazamiento de i hasta el numero de vértices de esa fila partiendo del indice obtenido.
 
+```c++
+for(i = 0; i<nverts; i++)
+{
+	filak[i] = vectorLocal[indicePartidaFilaK + i];
+}
+```
 ####1.1.2 Broadcast fila k
+Para hacer el *Broadcast* de la fila k tuve que obtener en primer lugar el proceso que se iba a encargar de realizar la difusión, para ello:
 
-
+```c++
+int tamVectorLocal = (nverts*nverts)/numeroProcesos;
+int tamFilaLocal = tamVectorLocal/nverts;
+// ..........
+for(k = 0; k<nverts; k++)
+{
+	idProcesoBloqueK = k / tamFilaLocal;
+	// ..........
+}
+```
+Una vez que obtuve el proceso que se encargaba de ese bloque procedo a hacer la difusión de la *fila k*.
+```c++
+MPI_Bcast(&filak[0], nverts, MPI_INT, idProcesoBloqueK, MPI_COMM_WORLD);
+```
 
 ##2. Versión 2D. Distribución por submatrices
 La implementación de esta versión está dentro de la carpeta Floyd-2.
@@ -53,7 +78,7 @@ En cada etapa k del algoritmo los procesos necesitan saber ***N/sqrtP*** valores
  - La columna k será repartida al resto de procesos de la misma fila de la malla de procesos.
  - La fila k será repartida al resto de procesos de la misma columna de la malla de procesos.
 
-### 2.1 Problemas
+### 2.1 Problemas encontrados  y su resolución
 #### 2.1.1 Comunicadores
 Para completar la tarea de que se pueda repartir la columna k entre el resto de procesos de la misma malla y se pueda repartir la fila k entre el resto de procesos de la misma columna, necesitamos usar comunicadores, para asignar un nuevo identificador a los procesos dentro de los comunicadores.
 
@@ -76,16 +101,25 @@ Inicialmente P0 contiene la matriz completa y procede a hacer un reparto de esta
 
 ####*Tabla de tiempos y ganancia*
 
-| Tiempo | P = 1 (FloydS) | P = 4 (Floyd1D) | P = 4 (Floyd2D) | Ganancia (Floyd1D) | Ganancia (Floyd2D) |
-|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
-| n = 60 | 0.001842 | 0.001683 | 0.000411 |  |  |
-| n = 240 | 0.120560 | 0.025798 | 0.010350 |  |  |
-| n = 480 | 0.959641 | 0.179740 | 0.075400 |  |  |
-| n = 600 | 1.867405 | 0.357499 | 0.144144 |  |  |
-| n = 800 | 4.417744 | 0.876496 | 0.346687 |  |  |
-| n = 920 | 6.771146 | 1.326323 | 0.538065 |  |  |
-| n = 1000 | 8.750761 | 1.682442 | 0.706264 |  |  |
-| n = 1200 | 15.246722 | 3.006751 | 1.197015 |  |  |
+En la siguiente tabla se pueden observar las mediciones de tiempos que se han tomado antes y después de finalizar únicamente el algoritmo de Floyd en sus distintas versiones.
 
-![graficaP1](./grafica.png)
+La ganancia se puede expresar como la relación entre el tiempo secuencias y el tiempo paralelo *Tsecuencial/Tparalelo*.
 
+ - Ganancia (Floyd1D)  = FloydS/Floyd1D (P = 4)
+ - Ganancia (Floyd2D)  = FloydS/Floyd2D (P = 4)
+
+| Tamaño | P = 1 (FloydS) | P = 4 (Floyd1D) | P = 4 (Floyd2D) | Ganancia (Floyd1D) | Ganancia (Floyd2D) |
+|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| n = 60 | 0.001842 | 0.001683 | 0.000411 | 0.0000 | 0.0000 |
+| n = 240 | 0.120560 | 0.025798 | 0.010350 | 0.0000 |  0.0000 |
+| n = 480 | 0.959641 | 0.179740 | 0.075400 | 0.0000 | 0.0000 |
+| n = 600 | 1.867405 | 0.357499 | 0.144144 | 0.0000 | 0.0000 |
+| n = 800 | 4.417744 | 0.876496 | 0.346687 | 0.0000 | 0.0000 |
+| n = 920 | 6.771146 | 1.326323 | 0.538065 | 0.0000 | 0.0000 |
+| n = 1000 | 8.750761 | 1.682442 | 0.706264 | 0.0000 | 0.0000 |
+| n = 1200 | 15.246722 | 3.006751 | 1.197015 | 0.0000 | 0.0000 |
+
+![graficaP1_1](./grafica.png)
+![graficaP1_2](./ganancia.png)
+
+Como se puede observar tanto en la tabla como en las gráficas los tiempos recogidos por los algoritmos paralelos consumen mucho menos tiempo que el secuenciasl y presentan una ganancia de hasta un 500% por encima.

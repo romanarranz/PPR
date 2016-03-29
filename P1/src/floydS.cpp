@@ -4,6 +4,8 @@
 #include "Graph.h"
 #include "mpi.h"
 
+#define COUT false
+
 using namespace std;
 
 void guardaEnArchivo(int n, double t)
@@ -30,6 +32,10 @@ int main (int argc, char *argv[])
 
     Graph * G = new Graph();
     G->lee(argv[1]);		// Read the Graph
+
+    #if !COUT
+        cout.setstate(ios_base::failbit);
+    #endif
     cout << "EL Grafo de entrada es:"<<endl;
     G->imprime();
 
@@ -60,6 +66,9 @@ int main (int argc, char *argv[])
 
     cout << endl << "EL Grafo con las distancias de los caminos más cortos es:" << endl << endl;
     G->imprime();
+    #if !COUT
+        cout.clear();
+    #endif
     cout << endl << "Tiempo gastado = "<< t << endl << endl;
     guardaEnArchivo(nverts, t);
 

@@ -37,10 +37,13 @@ int main (int argc, char *argv[])
 	   return EXIT_FAILURE;
 	}
 
+    #if !COUT
+        cout.setstate(ios_base::failbit);
+    #endif
     if(idProceso == 0)
     {
         G = new Graph();
-        G->lee(argv[1]);		// Read the Graph
+        G->lee(argv[1]);		// Read the Graph        
         cout << "EL Grafo de entrada es:"<<endl;
         G->imprime();
 
@@ -88,14 +91,11 @@ int main (int argc, char *argv[])
     int * filak = new int[nverts];
     for(i = 0; i<nverts; i++)
         filak[i] = 0;
-    
+
 
     // Iniciamos el cronometro
     double t = MPI_Wtime();
-
-    #if !COUT
-        cout.setstate(ios_base::failbit);
-    #endif
+    
     cout << "P" << idProceso << endl;
     for(k = 0; k<nverts; k++)
     {
@@ -163,12 +163,12 @@ int main (int argc, char *argv[])
 
     if(idProceso == 0)
     {
-
+        
+        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
+        G->imprime();
         #if !COUT
             cout.clear();
         #endif
-        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
-        G->imprime();
         cout << endl << "Tiempo gastado = "<< t << endl << endl;
 
         guardaEnArchivo(nverts, t);

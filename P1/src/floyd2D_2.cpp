@@ -38,6 +38,9 @@ int main (int argc, char *argv[])
 	   return EXIT_FAILURE;
 	}
 
+    #if !COUT
+        cout.setstate(ios_base::failbit);
+    #endif
     if(idProceso == 0){
         G = new Graph();
         G->lee(argv[1]);
@@ -50,7 +53,6 @@ int main (int argc, char *argv[])
 
     // Todos los procesos deben de conocer el nverts
     MPI_Bcast(&nverts, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
 
     if(nverts%numeroProcesos != 0)
     {
@@ -105,7 +107,7 @@ int main (int argc, char *argv[])
     // ============================================>
     MPI_Datatype MPI_BLOQUE;
     int bufferSalida[nverts*nverts];
-    int filaSubmatriz, columnaSubmatriz, comienzo;
+    int filaSubmatriz, columnaSubmatriz, comienzo;    
 
     if (idProceso == 0)
     {
@@ -134,7 +136,7 @@ int main (int argc, char *argv[])
     // <== REPARTO DE LA MATRIZ A LOS PROCESOS
     // ============================================>
     int subMatriz[tamBloque][tamBloque];
-
+    
     // Repartimos los valores del grafo entre los procesos
     MPI_Scatter( bufferSalida, sizeof(int) * tamBloque * tamBloque, MPI_PACKED, subMatriz, tamBloque * tamBloque, MPI_INT, 0, MPI_COMM_WORLD );    
 
@@ -161,9 +163,6 @@ int main (int argc, char *argv[])
     // Iniciamos el cronometro
     double t = MPI_Wtime();
 
-    #if !COUT
-        cout.setstate(ios_base::failbit);
-    #endif
     for(k = 0; k<nverts; k++)
     {
         // idHorizontal y idVertical del comunicador horizontal y vertical
@@ -234,12 +233,12 @@ int main (int argc, char *argv[])
     // <== MOSTRAR RESULTADOS
     // ============================================>  
     if(idProceso == 0){
-
+        
+        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
+        G->imprime();
         #if !COUT
             cout.clear();
         #endif
-        cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
-        G->imprime();
         cout << endl << "Tiempo gastado = "<< t << endl << endl;
 
         guardaEnArchivo(nverts, t);
