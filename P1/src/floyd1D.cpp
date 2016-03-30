@@ -4,7 +4,7 @@
 #include "Graph.h"
 #include "mpi.h"
 
-#define COUT true
+#define COUT false
 
 using namespace std;
 
@@ -92,6 +92,7 @@ int main (int argc, char *argv[])
     for(i = 0; i<nverts; i++)
         filak[i] = 0;
 
+    int aux, locali;
 
     // Iniciamos el cronometro
     double t = MPI_Wtime();
@@ -132,14 +133,17 @@ int main (int argc, char *argv[])
         
         for(i = iLocalInicio; i<iLocalFinal; i++)
         {
+            locali = i - iLocalInicio;
+            //aux = (i*nverts)%tamVectorLocal;
+            aux = locali * nverts;
             for(j = 0; j<nverts; j++)
             {
                 // no iterar sobre la diagonal de la matriz
                 if (i!=j && i!=k && j!=k) 
                 {   
-                    vikj = vectorLocal[(i*nverts)%tamVectorLocal + k] + filak[j];
-                    vikj = min(vikj, vectorLocal[(i * nverts)%tamVectorLocal + j]);
-                    vectorLocal[(i*nverts)%tamVectorLocal + j] = vikj;
+                    vikj = vectorLocal[ aux + k] + filak[j];
+                    vikj = min(vikj, vectorLocal[ aux + j]);
+                    vectorLocal[aux + j] = vikj;
                 }
             }
         }
