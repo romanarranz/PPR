@@ -92,7 +92,7 @@ int main (int argc, char *argv[])
     for(i = 0; i<nverts; i++)
         filak[i] = 0;
 
-    int aux, locali;
+    int aux, locali, vij;
 
     // Iniciamos el cronometro
     double t = MPI_Wtime();
@@ -115,7 +115,8 @@ int main (int argc, char *argv[])
                     --------------------------
         */
         idProcesoBloqueK = k / tamFilaLocal;
-        indicePartidaFilaK = (k*nverts)%tamVectorLocal;
+        //indicePartidaFilaK = (k*nverts)%tamVectorLocal;
+        indicePartidaFilaK = k - iLocalInicio;
 
         if(k >= iLocalInicio && k < iLocalFinal)
         {
@@ -138,12 +139,13 @@ int main (int argc, char *argv[])
             aux = locali * nverts;
             for(j = 0; j<nverts; j++)
             {
+                vij = aux + j;
                 // no iterar sobre la diagonal de la matriz
                 if (i!=j && i!=k && j!=k) 
                 {   
                     vikj = vectorLocal[ aux + k] + filak[j];
-                    vikj = min(vikj, vectorLocal[ aux + j]);
-                    vectorLocal[aux + j] = vikj;
+                    vikj = min(vikj, vectorLocal[vij]);
+                    vectorLocal[vij] = vikj;
                 }
             }
         }
