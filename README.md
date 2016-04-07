@@ -20,3 +20,13 @@ En esta práctica se aborda la implementación paralela del algoritmo de **Floyd
 > 
 > - Descomposición unidimensional (por bloques de filas)
 > - Descomposición bidimensional (por bloques 2D)
+
+#### Práctica 2: Implementación distribuida de un algoritmo paralelo usando equilibrado de carga
+En esta práctica se aborda la implementación paralela del algoritmo del problema conocido TSP ó Viajante de Comercio en el que usaremos una clase Grafo como TDA para almacenar los datos: ciudades (vértices) y distancias entre ciudades (arcos etiquetados).
+
+> **Consideraciones**
+
+> - Para la implementación usaremos técnicas de ramificación y poda (Branch & Bound) en la que dinámicamente construimos un árbol de búsqueda, su raíz sería el problema inicial y los nodos hoja serían los caminos entre ciudades.
+> - Para encontra la solución del problema tendremos que usar un sistema que detecte la situación de fin que implementaremos mediante un algoritmo de paso de testigo en anillo (Algoritmo de Terminación de Dijkstra).
+> 
+> **Única implementación**
