@@ -31,7 +31,7 @@ CPPFLAGS = -Wall -g -I$(INC) -I$(LIB) -O3 -c
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
 
-all: $(BIN)/tspSecuencial
+all: $(BIN)/tspSecuencial $(BIN)/tspParalelo
 
 # ************ Ejecutables ************
 
@@ -39,10 +39,18 @@ $(BIN)/tspSecuencial: $(OBJ)/bbseq.o $(OBJ)/libbb.o
 	@echo "Creando ./bin/tspSecuencial..."
 	@$(CXX) -o $@ $^
 
+$(BIN)/tspParalelo: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o
+	@echo "Creando ./bin/tspParalelo..."
+	@$(CXX) -o $@ $^
+
 # ************ Objetos ************
 
 $(OBJ)/bbseq.o: $(SRC)/bbseq.cc
 	@echo "Creando ./obj/bbseq.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/tspParalelo.o: $(SRC)/tspParalelo.cpp
+	@echo "Creando ./obj/tspParalelo.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(OBJ)/libbb.o: $(LIB)/libbb.cc
@@ -59,49 +67,8 @@ clean:
 # ************ Compresion ************
 zip:
 	@echo "Creando "$(CURRENT_DIR)".zip..."
-	zip $(CURRENT_DIR) -r src obj input include enunciados bin
+	zip $(CURRENT_DIR) -r src lib obj input include enunciados bin Makefile
 
 tar:
 	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
-	tar -cvzf $(CURRENT_DIR).tar.gz src obj input include enunciados bin
-
-# ************ Grafica ************
-plot:
-	@echo "Creando grafica.png..."
-	@gnuplot <<< "\
-		set terminal png size 800,600 font 'Verdana,10'; \
-		set output 'grafica.png'; \
-		set autoscale; \
-		unset log; \
-		unset label; \
-		set border linewidth 2; \
-		set xtic auto; \
-		set ytic auto; \
-		set title 'Algoritmo de Floyd'; \
-		set xlabel 'Tamaño del problema'; \
-		set ylabel 'Tiempo de computo (seg)'; \
-		set key default; \
-		set xr [0.0:1200]; \
-		set yr [0:7]; \
-		plot 'output/floydS.dat' using 1:2 title 'FloydS' with linespoints pt 7 ps 1, \
-		     'output/Floyd1D.dat' using 1:2 title 'Floyd1D' with linespoints pt 6 ps 1, \
-		     'output/Floyd2D.dat' using 1:2 title 'Floyd2D' with linespoints pt 7 ps 1"
-
-	@echo "Creando ganancia.png..."
-	@gnuplot <<< "\
-		set terminal png size 800,600 font 'Verdana,10'; \
-		set output 'ganancia.png'; \
-		set autoscale; \
-		unset log; \
-		unset label; \
-		set border linewidth 2; \
-		set xtic auto; \
-		set ytic auto; \
-		set title 'Ganancia Floyd Paralelo frente a Secuencial'; \
-		set xlabel 'Tamaño del problema'; \
-		set ylabel 'Ganancia (S)'; \
-		set key default; \
-		set xr [0.0:1200]; \
-		set yr [0:6]; \
-		plot 'output/ganancia1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 7 ps 1, \
-		     'output/ganancia2D.dat' using 1:2 title 'Ganancia2D' with linespoints pt 6 ps 1"
+	tar -cvzf $(CURRENT_DIR).tar.gz src lib obj input include enunciados bin Makefile
