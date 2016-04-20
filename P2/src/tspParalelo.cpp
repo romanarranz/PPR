@@ -1,6 +1,3 @@
-/* ******************************************************************** */
-/*               Algoritmo Branch-And-Bound Secuencial                  */
-/* ******************************************************************** */
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -25,10 +22,6 @@ void guardaEnArchivo(int n, double t)
     }
     else
         cout << "No se puede abrir el archivo";
-}
-
-void LeerProblemaInicial(tNodo * nodo){
-	cout << "LeerProblemaInicial" << endl;
 }
 
 void EquilibrarCarga(tPila * pila, bool fin){
@@ -94,7 +87,7 @@ void EquilibrarCarga(tPila * pila, bool fin){
 					// ENVIAR NODOS AL PROCESO SOLICITANTE
 					MPI_Send(&pila2.nodos[0], pila2.tope, MPI_INT, solicitante, NODOS, COMM_EQUILIBRADO_CARGA);
 				}
-				else {
+				else {
 					// PASAR PETICION DE TRABAJO AL PROCESO (id+1)%P
 					MPI_Send(&solicitante, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
 				}
@@ -112,16 +105,13 @@ int main (int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &P);
 	MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
-	switch (argc) {
-		case 3:
-			NCIUDADES = atoi(argv[1]);
-			break;
-
-		default:
-			cerr << "La sintaxis es: bbseq <tamano> <archivo>" << endl;
-			MPI_Abort(MPI_COMM_WORLD, 1);
-			exit(1);
-			break;
+	if(argc < 2 && argc > 4){
+		cerr << "La sintaxis es: mpirun -np P bin/tspParalelo <tamano> <archivo>" << endl;
+		MPI_Abort(MPI_COMM_WORLD, 1);
+		exit(1);
+	}
+	else {
+		NCIUDADES = atoi(argv[1]);
 	}
 
 	// Duplicamos el comunicador para el proceso de deteccion de fin
@@ -220,6 +210,7 @@ int main (int argc, char **argv) {
 		if(!fin) pila->pop(nodo);
 
 		iteraciones++;
+		cout << "P" << id << " -> " << pila->tope << "\n";
 	}
 
     t = MPI::Wtime()-t;
@@ -232,7 +223,7 @@ int main (int argc, char **argv) {
 		EscribeNodo(&solucion);
 		cout<< "Tiempo gastado= "<<t<<endl;
 		cout << "Numero de iteraciones = " << iteraciones << endl << endl;
-
+		
 		// Liberamos memoria
 		liberarMatriz(tsp0);
 		delete pila;
