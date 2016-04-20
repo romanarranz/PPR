@@ -31,15 +31,15 @@ struct tArco {
 #ifndef TNODO_T
 #define TNODO_T
 class tNodo {
-	
+
 public:
 	int* datos;
 
-		
+
 		tNodo() {
 			datos = new int[2 * NCIUDADES];
 		}
-		
+
 		int ci(){
 			return datos[0];
 		}
@@ -58,8 +58,8 @@ public:
 		~tNodo() {
 			delete [] datos;
 		}
-	
-		
+
+
 };
 #endif
 
@@ -72,8 +72,6 @@ class tPila{
 		int tope;
 		int* nodos;
 
-		
-			
 		tPila(){
 			tope = 0;
 			nodos = new int[2 * NCIUDADES * MAXPILA];
@@ -210,4 +208,3 @@ void EscribeNodo (tNodo *nodo);
 int ** reservarMatrizCuadrada(unsigned int orden);
 void liberarMatriz(int** m);
 /* ******************************************************************** */
-

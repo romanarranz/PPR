@@ -316,7 +316,7 @@ bool tPila::push (tNodo& nodo) {
 	if (llena())
 		return false;
 
-	// Copiar el nodo en el tope de la pila	
+	// Copiar el nodo en el tope de la pila
 	for(int i = 0; i < 2 * NCIUDADES; i++)
 		nodos[tope + i] = nodo.datos[i];
 
@@ -328,7 +328,7 @@ bool tPila::push (tNodo& nodo) {
 bool tPila::pop (tNodo& nodo) {
 	if (vacia())
 		return false;
-	
+
 	// Modificar el tope de la pila
 	tope -= 2 * NCIUDADES;
 
@@ -397,4 +397,3 @@ void liberarMatriz(int** m) {
 	delete [] m[0];
 	delete [] m;
 }
-
