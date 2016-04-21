@@ -12,6 +12,9 @@ using namespace std;
 unsigned int NCIUDADES;
 MPI_Comm COMM_EQUILIBRADO_CARGA, COMM_DETECCION_FIN;
 int id, P;
+int U;						// valor de cota superior
+int solicitante, flag;
+MPI_Status status;
 
 void guardaEnArchivo(int n, double t)
 {
@@ -54,7 +57,6 @@ int main (int argc, char **argv) {
 	bool 	fin,        	// condicion de fin
 			nueva_U;       	// hay nuevo valor de c.s.
 
-	int  U;             	// valor de c.s.
 	int iteraciones = 0;
 	tPila * pila = new tPila();         	// pila de nodos a explorar
 
@@ -125,7 +127,7 @@ int main (int argc, char **argv) {
 			}
 		}
 
-		// MPI_Bcast(U);
+		MPI_Bcast(&U, 1, MPI_INT, 0, MPI_COMM_WORLD);
 		if (nueva_U) pila->acotar(U);
 
 		EquilibrarCarga(pila, &fin);

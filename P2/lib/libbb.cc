@@ -35,7 +35,7 @@ extern int rank;	 // Identificador del proceso dentro de cada comunicador (coinc
 extern int size;	// Numero de procesos que est�n resolviendo el problema
 int estado;	// Estado del proceso {ACTIVO, PASIVO}
 int color;	// Color del proceso {BLANCO,NEGRO}
-int color_token; 	// Color del token la �ltima vez que estaba en poder del proceso
+int color_token; 	// Color del token la ultima vez que estaba en poder del proceso
 bool token_presente;  // Indica si el proceso posee el token
 int anterior;	// Identificador del anterior proceso
 int siguiente;	// Identificador del siguiente proceso

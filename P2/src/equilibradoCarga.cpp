@@ -1,13 +1,11 @@
 #include "functions.h"
 
-extern int id, P;
-extern MPI_Comm COMM_EQUILIBRADO_CARGA, COMM_DETECCION_FIN;
+const int PETICION = 0;
+const int NODOS = 1;
 
 void EquilibrarCarga(tPila * pila, bool *fin){
-	int solicitante, flag, PETICION = 0, NODOS = 1;
-	MPI_Status estado;
 
-	if(pila->vacia()){ // el proceso no tiene trabajo: pide a otros procesos
+	if(pila->vacia()) { // el proceso no tiene trabajo: pide a otros procesos
 		cout << " pila vacia " << id << endl;
 		//ENVIAR PETICION DE TRABAJO AL PROCESO (id+1)%P
 		MPI_Send(&id, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
@@ -15,13 +13,13 @@ void EquilibrarCarga(tPila * pila, bool *fin){
 		while(pila->vacia() && !(*fin)){
 
 			//ESPERAR MENSAJE DE OTRO PROCESO
-			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &estado);
+			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &status);
 
-			switch(estado.MPI_TAG){
+			switch(status.MPI_TAG){
 				case 0: 	// peticion de trabajo
 
 					//RECIBIR MENSAJE DE PETICION DE TRABAJO
-					MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &estado);
+					MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &status);
 
 					if(solicitante == id){ // peticion devuelta
 						//REENVIAR PETICION DE TRABAJO AL PROCESO (id+1)%P
@@ -39,10 +37,10 @@ void EquilibrarCarga(tPila * pila, bool *fin){
 				case 1:		// resultado de una peticion de trabajo
 					int cantidadNodos;
 					// OBTENER LA CANTIDAD DE NODOS QUE SE HAN DONADO
-					MPI_Get_count(&estado, MPI_INT, &cantidadNodos);
+					MPI_Get_count(&status, MPI_INT, &cantidadNodos);
 
 					//RECIBIR NODOS DEL PROCESO DONANTE EN LA PILA
-					MPI_Recv(&pila->nodos[pila->tope], cantidadNodos, MPI_INT, MPI_ANY_SOURCE, NODOS, COMM_EQUILIBRADO_CARGA, &estado);
+					MPI_Recv(&pila->nodos[pila->tope], cantidadNodos, MPI_INT, MPI_ANY_SOURCE, NODOS, COMM_EQUILIBRADO_CARGA, &status);
 					pila->tope = cantidadNodos;
 					break;
 			}
@@ -55,12 +53,12 @@ void EquilibrarCarga(tPila * pila, bool *fin){
 			tPila pila2;
 
 			// sondear si hay mensajes pendientes de otros procesos
-			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &estado);
+			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &status);
 
 			while(flag){ // atiende peticiones mientras haya mensajes
 
 				// RECIBIR MENSAJE DE PETICION DE TRABAJO
-				MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &estado);
+				MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &status);
 
 				if(pila->tope > 1){  // hay suficientes nodos en la pila para ceder
 
@@ -76,9 +74,9 @@ void EquilibrarCarga(tPila * pila, bool *fin){
 				}
 
 				// sondear si hay mensajes pendientes de otros procesos
-				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &estado);
+				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &status);
 			}
+			*fin = true;
 		}
-		*fin = true;
 	}
 }
