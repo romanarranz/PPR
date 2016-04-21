@@ -39,7 +39,7 @@ $(BIN)/tspSecuencial: $(OBJ)/bbseq.o $(OBJ)/libbb.o
 	@echo "Creando ./bin/tspSecuencial..."
 	@$(CXX) -o $@ $^
 
-$(BIN)/tspParalelo: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o
+$(BIN)/tspParalelo: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o $(OBJ)/equilibradoCarga.o $(OBJ)/difusionCotaSuperior.o
 	@echo "Creando ./bin/tspParalelo..."
 	@$(CXX) -o $@ $^
 
@@ -51,6 +51,14 @@ $(OBJ)/bbseq.o: $(SRC)/bbseq.cc
 
 $(OBJ)/tspParalelo.o: $(SRC)/tspParalelo.cpp
 	@echo "Creando ./obj/tspParalelo.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/equilibradoCarga.o: $(SRC)/equilibradoCarga.cpp
+	@echo "Creando ./obj/equilibradoCarga.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/difusionCotaSuperior.o: $(SRC)/difusionCotaSuperior.cpp
+	@echo "Creando ./obj/difusionCotaSuperior.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(OBJ)/libbb.o: $(LIB)/libbb.cc

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "mpi.h"
 #include "libbb.h"
+#include "functions.h"
 
 using namespace std;
 
@@ -22,81 +23,6 @@ void guardaEnArchivo(int n, double t)
     }
     else
         cout << "No se puede abrir el archivo";
-}
-
-void EquilibrarCarga(tPila * pila, bool fin){
-	int solicitante, flag, PETICION = 0, NODOS = 1;
-	MPI_Status estado;
-
-	if(pila->vacia()){ // el proceso no tiene trabajo: pide a otros procesos
-
-		//ENVIAR PETICION DE TRABAJO AL PROCESO (id+1)%P
-		MPI_Send(&id, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
-
-		while(pila->vacia() && !fin){
-
-			//ESPERAR MENSAJE DE OTRO PROCESO
-			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &estado);
-
-			switch(estado.MPI_TAG){
-				case 0: 	// peticion de trabajo
-
-					//RECIBIR MENSAJE DE PETICION DE TRABAJO
-					MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &estado);
-
-					if(solicitante == id){ // peticion devuelta
-						//REENVIAR PETICION DE TRABAJO AL PROCESO (id+1)%P
-						MPI_Send(&solicitante, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
-
-						//INICIAR DETECCION DE POSIBLE SITUACION DE FIN ??????????
-
-					}
-					else{ // peticion de otro proceso: la retransmite al siguiente
-						//PASAR LA PETICION AL PROCESO (id+1)%P
-						MPI_Send(&solicitante, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
-					}
-					break;
-
-				case 1:		// resultado de una peticion de trabajo
-					int cantidadNodos;
-					// OBTENER LA CANTIDAD DE NODOS QUE SE HAN DONADO
-					MPI_Get_count(&estado, MPI_INT, &cantidadNodos);
-
-					//RECIBIR NODOS DEL PROCESO DONANTE EN LA PILA
-					MPI_Recv(&pila->nodos, cantidadNodos, MPI_INT, MPI_ANY_SOURCE, NODOS, COMM_EQUILIBRADO_CARGA, &estado);
-					pila->tope = cantidadNodos;
-					break;
-			}
-		}
-
-		// El proceso tiene nodos para trabajar
-		if(!fin){
-			tPila pila2;
-			pila->divide(pila2);
-
-			// sondear si hay mensajes pendientes de otros procesos
-			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &estado);
-
-			while(flag){ // atiende peticiones mientras haya mensajes
-
-				// RECIBIR MENSAJE DE PETICION DE TRABAJO
-				MPI_Recv(&solicitante, 1, MPI_INT, MPI_ANY_SOURCE, PETICION, COMM_EQUILIBRADO_CARGA, &estado);
-
-				if(pila->tope > 1){  // hay suficientes nodos en la pila para ceder
-
-					// ENVIAR NODOS AL PROCESO SOLICITANTE
-					MPI_Send(&pila2.nodos[0], pila2.tope, MPI_INT, solicitante, NODOS, COMM_EQUILIBRADO_CARGA);
-				}
-				else {
-					// PASAR PETICION DE TRABAJO AL PROCESO (id+1)%P
-					MPI_Send(&solicitante, 1, MPI_INT, (id+1)%P, PETICION, COMM_EQUILIBRADO_CARGA);
-				}
-
-				// sondear si hay mensajes pendientes de otros procesos
-				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &flag, &estado);
-			}
-		}
-	}
 }
 
 int main (int argc, char **argv) {
@@ -132,11 +58,6 @@ int main (int argc, char **argv) {
 	int iteraciones = 0;
 	tPila * pila = new tPila();         	// pila de nodos a explorar
 
-	// solo P0 reserva memoria a la matriz
-	if(id == 0){
-		tsp0 = reservarMatrizCuadrada(NCIUDADES);
-	}
-
 	// <== Inicializaciones de todos los procesos
 	// ========================================>
 	U = INFINITO;         	// inicializa cota superior
@@ -144,13 +65,14 @@ int main (int argc, char **argv) {
 
 	// solo P0 rellena la matriz
 	if(id == 0){
-		LeerMatriz (argv[2], tsp0);    // lee matriz de fichero
+		tsp0 = reservarMatrizCuadrada(NCIUDADES); 	// reserva memoria a la matriz
+		LeerMatriz (argv[2], tsp0);    				// lee matriz de fichero
 		fin = Inconsistente(tsp0);
+
+		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&fin, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 	}
-
-	MPI_Bcast(&fin, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
-
-	if(id != 0){
+	else {
 		EquilibrarCarga(pila, &fin);
 		if(!fin) pila->pop(nodo);
 	}
@@ -210,7 +132,6 @@ int main (int argc, char **argv) {
 		if(!fin) pila->pop(nodo);
 
 		iteraciones++;
-		cout << "P" << id << " -> " << pila->tope << "\n";
 	}
 
     t = MPI::Wtime()-t;
@@ -223,7 +144,7 @@ int main (int argc, char **argv) {
 		EscribeNodo(&solucion);
 		cout<< "Tiempo gastado= "<<t<<endl;
 		cout << "Numero de iteraciones = " << iteraciones << endl << endl;
-		
+
 		// Liberamos memoria
 		liberarMatriz(tsp0);
 		delete pila;

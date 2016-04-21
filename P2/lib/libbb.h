@@ -2,6 +2,9 @@
 /*    Libreria para Branch-Bound, manejo de pila y Gestion de memoria       */
 /* ************************************************************************ */
 
+#ifndef LIBBB_H
+#define LIBBB_H
+
 #include <cstdio>
 const unsigned int MAXPILA = 150;
 
@@ -208,3 +211,5 @@ void EscribeNodo (tNodo *nodo);
 int ** reservarMatrizCuadrada(unsigned int orden);
 void liberarMatriz(int** m);
 /* ******************************************************************** */
+
+#endif
