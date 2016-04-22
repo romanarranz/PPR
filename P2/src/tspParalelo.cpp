@@ -7,13 +7,21 @@
 #include "libbb.h"
 #include "functions.h"
 
+#define DEBUG_MAIN true
+
 using namespace std;
 
 unsigned int NCIUDADES;
-MPI_Comm COMM_EQUILIBRADO_CARGA, COMM_DETECCION_FIN;
-int id, P;
-int U;						// valor de cota superior
-int solicitante, flag;
+
+// Comunicadores que usan cada proceso
+MPI_Comm COMM_EQUILIBRADO_CARGA;	// Para la distribucion de la carga
+MPI_Comm COMM_DIFUSION_COTA;		// Para la difusion de una nueva cota superior detectada
+
+// Variables de cada proceso
+int id; 	// Identificador del proceso dentro de cada comunicador (coincide en ambos)
+int P;		// Numero de procesos que est�n resolviendo el problema
+int U;		// valor de cota superior
+int solicitante, hay_mensajes;
 MPI_Status status;
 
 void guardaEnArchivo(int n, double t)
@@ -45,7 +53,7 @@ int main (int argc, char **argv) {
 
 	// Duplicamos el comunicador para el proceso de deteccion de fin
 	MPI_Comm_dup(MPI_COMM_WORLD, &COMM_EQUILIBRADO_CARGA);
-	MPI_Comm_dup(MPI_COMM_WORLD, &COMM_DETECCION_FIN);
+	MPI_Comm_dup(MPI_COMM_WORLD, &COMM_DIFUSION_COTA);
 
 	// <== Valores que conocen todos los procesos
 	// ========================================>
@@ -54,8 +62,13 @@ int main (int argc, char **argv) {
 			nodoIzq,        // hijo izquierdo
 			nodoDer,        // hijo derecho
 			solucion;     	// mejor solucion
-	bool 	fin,        	// condicion de fin
+	extern int 	siguiente,
+				anterior;
+	bool 	fin = false,    // condicion de fin
 			nueva_U;       	// hay nuevo valor de c.s.
+
+	siguiente = (id+1)%P;
+	anterior = (id-1+P)%P;
 
 	int iteraciones = 0;
 	tPila * pila = new tPila();         	// pila de nodos a explorar
@@ -69,21 +82,26 @@ int main (int argc, char **argv) {
 	if(id == 0){
 		tsp0 = reservarMatrizCuadrada(NCIUDADES); 	// reserva memoria a la matriz
 		LeerMatriz (argv[2], tsp0);    				// lee matriz de fichero
-		fin = Inconsistente(tsp0);
+		fin = Inconsistente(tsp0);					// en caso de que sea consistente devuelve false
 
 		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
 		MPI_Bcast(&fin, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 	}
 	else {
+		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
 		EquilibrarCarga(pila, &fin);
 		if(!fin) pila->pop(nodo);
 	}
 
+	#if !DEBUG_MAIN
+		cout.setstate(ios_base::failbit);
+	#else
+		cout.clear();
+	#endif
     double t = MPI::Wtime();
 
 	// ciclo del Branch&Bound
 	while (!fin) {
-
 		Ramifica (&nodo, &nodoIzq, &nodoDer, tsp0);
 		nueva_U = false;
 
@@ -127,13 +145,15 @@ int main (int argc, char **argv) {
 			}
 		}
 
-		MPI_Bcast(&U, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		//DifusionCotaSuperior(&U);
 		if (nueva_U) pila->acotar(U);
 
 		EquilibrarCarga(pila, &fin);
 		if(!fin) pila->pop(nodo);
 
 		iteraciones++;
+		cout << "[MAIN]"<< id << " hizo " << iteraciones << " iteraciones" << endl;
+		sleep(1);
 	}
 
     t = MPI::Wtime()-t;

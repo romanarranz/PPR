@@ -26,7 +26,7 @@ LIB = lib
 BIN = bin
 CXX = mpic++
 CC  = mpicc
-CPPFLAGS = -Wall -g -I$(INC) -I$(LIB) -O3 -c
+CPPFLAGS = -Wall -I$(INC) -I$(LIB) -O3 -c
 
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
