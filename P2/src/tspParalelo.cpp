@@ -177,15 +177,15 @@ int main (int argc, char **argv) {
 		cout << "Numero de iteraciones = " << iteraciones << endl << endl;
 
         guardaEnArchivo(atoi(argv[1]), t);
-
-		// Liberamos memoria
-		liberarMatriz(tsp0);
-		delete pila;
-        delete nodo;
-        delete nodoDer;
-        delete nodoIzq;
-        delete solucion;
 	}
+
+    // Liberamos memoria
+    liberarMatriz(tsp0);
+    delete pila;
+    delete nodo;
+    delete nodoDer;
+    delete nodoIzq;
+    delete solucion;
 
     MPI::Finalize();
 }

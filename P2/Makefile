@@ -26,8 +26,11 @@ LIB = lib
 BIN = bin
 CXX = mpic++
 CC  = mpicc
-WARNINGS = -Wall
-CPPFLAGS = -I$(INC) -I$(LIB) -O3 -c
+DEBUG = -Wall -g -O0
+PROD = -O3
+
+# cambiar $(DEBUG) por $(PROD) cuando funcione correctamente
+CPPFLAGS = $(DEBUG) -I$(INC) -I$(LIB) -c
 
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
@@ -66,7 +69,7 @@ $(OBJ)/libbb.o: $(LIB)/libbb.cc
 	@echo "Creando ./obj/bbseq.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-.PHONY: clean zip tar plot style
+.PHONY: clean zip tar plot style debug
 
 # ************ Limpieza ************
 clean:
@@ -84,3 +87,13 @@ tar:
 
 style:
 	@echo "http://astyle.sourceforge.net"
+
+# con ||: make no nos muestra el error
+# con @- make ignora los errores y no muestra la salida de la ejecucion de esta sentencia
+debug:
+	@echo "Ejecutando valgrind..."
+	@-mpirun -np 4 valgrind --tool=memcheck --leak-check=full bin/tspParalelo 10 input/tsp10.1 &> output/debug_full.txt ||:
+	@echo "Filtrando resultados por .cpp..."
+	@grep ".cpp" output/debug_full.txt > output/debug.txt
+	@echo "Ordenando y borrando lineas repetidas..."
+	@sort -u output/debug.txt -o output/debug.txt
