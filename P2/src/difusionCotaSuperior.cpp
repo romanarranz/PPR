@@ -3,6 +3,8 @@
 void DifusionCotaSuperior(int *U){
 	#if !DEBUG_COTA
 		cout.setstate(ios_base::failbit);
+	#else
+		cout.clear();
 	#endif
 
 	if (difundir_cs_local && !pendiente_retorno_cs)  {

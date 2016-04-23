@@ -7,7 +7,7 @@
 #include "libbb.h"
 #include "functions.h"
 
-#define DEBUG_MAIN true
+#define DEBUG_MAIN false
 
 using namespace std;
 
@@ -58,10 +58,10 @@ int main (int argc, char **argv) {
 	// <== Valores que conocen todos los procesos
 	// ========================================>
 	int ** tsp0 = 0;
-	tNodo 	nodo,         	// nodo a explorar
-			nodoIzq,        // hijo izquierdo
-			nodoDer,        // hijo derecho
-			solucion;     	// mejor solucion
+	tNodo * nodo = new tNodo(),         	// nodo a explorar
+		  * nodoIzq = new tNodo(),        // hijo izquierdo
+		  * nodoDer = new tNodo(),        // hijo derecho
+		  * solucion = new tNodo();     	// mejor solucion
 	extern int 	siguiente,
 				anterior;
 	bool 	fin = false,    // condicion de fin
@@ -76,11 +76,12 @@ int main (int argc, char **argv) {
 	// <== Inicializaciones de todos los procesos
 	// ========================================>
 	U = INFINITO;         	// inicializa cota superior
-	InicNodo (&nodo);       // inicializa estructura nodo
+	InicNodo (nodo);       // inicializa estructura nodo
 
 	// solo P0 rellena la matriz
 	if(id == 0){
-		tsp0 = reservarMatrizCuadrada(NCIUDADES); 	// reserva memoria a la matriz
+        token_presente = true;
+        tsp0 = reservarMatrizCuadrada(NCIUDADES); 	// reserva memoria a la matriz
 		LeerMatriz (argv[2], tsp0);    				// lee matriz de fichero
 		fin = Inconsistente(tsp0);					// en caso de que sea consistente devuelve false
 
@@ -88,9 +89,12 @@ int main (int argc, char **argv) {
 		MPI_Bcast(&fin, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 	}
 	else {
+        token_presente = false;
 		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
 		EquilibrarCarga(pila, &fin);
-		if(!fin) pila->pop(nodo);
+
+        if(!fin)
+            pila->pop(*nodo);
 	}
 
 	#if !DEBUG_MAIN
@@ -102,22 +106,22 @@ int main (int argc, char **argv) {
 
 	// ciclo del Branch&Bound
 	while (!fin) {
-		Ramifica (&nodo, &nodoIzq, &nodoDer, tsp0);
+		Ramifica (nodo, nodoIzq, nodoDer, tsp0);
 		nueva_U = false;
 
-		if (Solucion(&nodoDer)) {
+		if (Solucion(nodoDer)) {
 			// se ha encontrado una solucion mejor
-			if (nodoDer.ci() < U) {
-				U = nodoDer.ci();
+			if (nodoDer->ci() < U) {
+				U = nodoDer->ci();
 				nueva_U = true;
-				CopiaNodo (&nodoDer, &solucion);
+				CopiaNodo (nodoDer, solucion);
 			}
 		}
 		//  no es un nodo solucion
 		else {
 			//  cota inferior menor que cota superior
-			if (nodoDer.ci() < U) {
-				if (!pila->push(nodoDer)) {
+			if (nodoDer->ci() < U) {
+				if (!pila->push(*nodoDer)) {
 					printf ("Error: pila agotada\n");
 					liberarMatriz(tsp0);
 					exit (1);
@@ -125,19 +129,19 @@ int main (int argc, char **argv) {
 			}
 		}
 
-		if (Solucion(&nodoIzq)) {
+		if (Solucion(nodoIzq)) {
 			// se ha encontrado una solucion mejor
-			if (nodoIzq.ci() < U) {
-				U = nodoIzq.ci();
+			if (nodoIzq->ci() < U) {
+				U = nodoIzq->ci();
 				nueva_U = true;
-				CopiaNodo (&nodoIzq,&solucion);
+				CopiaNodo (nodoIzq, solucion);
 			}
 		}
 		// no es nodo solucion
 		else {
 			// cota inferior menor que cota superior
-			if (nodoIzq.ci() < U) {
-				if (!pila->push(nodoIzq)) {
+			if (nodoIzq->ci() < U) {
+				if (!pila->push(*nodoIzq)) {
 					printf ("Error: pila agotada\n");
 					liberarMatriz(tsp0);
 					exit (1);
@@ -145,15 +149,18 @@ int main (int argc, char **argv) {
 			}
 		}
 
-		//DifusionCotaSuperior(&U);
+		DifusionCotaSuperior(&U);
 		if (nueva_U) pila->acotar(U);
 
 		EquilibrarCarga(pila, &fin);
-		if(!fin) pila->pop(nodo);
+		if(!fin) pila->pop(*nodo);
 
 		iteraciones++;
-		cout << "[MAIN]"<< id << " hizo " << iteraciones << " iteraciones" << endl;
-		sleep(1);
+		cout << "[MAIN]"<< id << " it: " << iteraciones << ", pila: " << pila->tamanio() << endl;
+		//sleep(1);
+
+        if(iteraciones == 206)
+            fin = true;
 	}
 
     t = MPI::Wtime()-t;
@@ -161,15 +168,22 @@ int main (int argc, char **argv) {
 	// <== Mostramos resultados
 	// ========================================>
 	if(id == 0){
+        cout.clear();
 		printf ("Solucion: \n");
 
-		EscribeNodo(&solucion);
-		cout<< "Tiempo gastado= "<<t<<endl;
+		EscribeNodo(solucion);
+		cout<< "Tiempo gastado = " << t << endl;
 		cout << "Numero de iteraciones = " << iteraciones << endl << endl;
+
+        guardaEnArchivo(atoi(argv[1]), t);
 
 		// Liberamos memoria
 		liberarMatriz(tsp0);
 		delete pila;
+        delete nodo;
+        delete nodoDer;
+        delete nodoIzq;
+        delete solucion;
 	}
 
     MPI::Finalize();
