@@ -15,6 +15,7 @@ const int BLANCO = 0;
 const int NEGRO = 1;
 
 tNodo *solucionLocal;
+tPila *pila2;
 
 void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 	#if !DEBUG_EQUILIBRADO
@@ -169,7 +170,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							if(id == 0){
 								color_token = BLANCO;
 							}
-							else if(color == NEGRO){
+							else {
 								color_token = NEGRO;
 							}
 
@@ -234,23 +235,22 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 						MPI_Recv(&solicitante, 1, MPI_INT, anterior, PETICION, COMM_EQUILIBRADO_CARGA, &status);
 
 						if(pila->tamanio() > 1){  // si al menos tenemos 2 nodos en la pila, podemos ceder uno
-							tPila pila2;
 
 							// DIVIDIR LA PILA
-							pila->divide(pila2);
+							pila2 = new tPila();
+							pila->divide(*pila2);
 							cout << "[EQ] " << id  << " tiene " << pila->tope << " nodos " << endl;
 							#if DEBUG_EQ_SLEEP
 								usleep(SLEEP_TIME);
 							#endif
 
 							// ENVIAR NODOS AL PROCESO SOLICITANTE
-							MPI_Send(&pila2.nodos[0], pila2.tope, MPI_INT, solicitante, NODOS, COMM_EQUILIBRADO_CARGA);
-							delete &pila2;
+							MPI_Send(&pila2->nodos[0], pila2->tope, MPI_INT, solicitante, NODOS, COMM_EQUILIBRADO_CARGA);
+							delete pila2;
 							cout << "[EQ] " << id  << " envia nodos al solicitante " << solicitante << endl;
 							#if DEBUG_EQ_SLEEP
 								usleep(SLEEP_TIME);
 							#endif
-
 
 							if(id < solicitante){
 								color = NEGRO;
