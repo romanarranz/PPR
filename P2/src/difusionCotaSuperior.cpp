@@ -1,6 +1,6 @@
 #include "functions.h"
 
-void DifusionCotaSuperior(int *U){
+void DifusionCotaSuperior(int *U, bool *nueva_U){
 	#if !DEBUG_COTA
 		cout.setstate(ios_base::failbit);
 	#else
@@ -21,7 +21,7 @@ void DifusionCotaSuperior(int *U){
     }
 
     // Sondear si hay mensajes de cota superior pendientes
-	MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_DIFUSION_COTA, &hay_mensajes, &status);
+	MPI_Iprobe(anterior, MPI_ANY_TAG, COMM_DIFUSION_COTA, &hay_mensajes, &status);
 	cout << "[CS] " << id << " SONDEO CS " << endl;
 	#if DEBUG_CS_SLEEP
 		usleep(SLEEP_TIME);
@@ -40,8 +40,10 @@ void DifusionCotaSuperior(int *U){
 		MPI_Recv(&cotaSup, 1, MPI_INT, anterior, 0, COMM_DIFUSION_COTA, &status);
 
 		// Actualizar valor local de cota superior
-		if(cotaSup < *U)
+		if(cotaSup < *U){
 			*U = cotaSup;
+			*nueva_U = true;
+		}
 
         if (status.MPI_SOURCE == id && difundir_cs_local){
             // Enviar valor local de cs al proceso (id+1)%P;
@@ -63,6 +65,6 @@ void DifusionCotaSuperior(int *U){
 		}
 
 		// Sondear si hay mensajes de cota superior pendientes
-		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_DIFUSION_COTA, &hay_mensajes, &status);
+		MPI_Iprobe(anterior, MPI_ANY_TAG, COMM_DIFUSION_COTA, &hay_mensajes, &status);
 	}
 }

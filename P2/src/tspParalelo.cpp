@@ -13,16 +13,9 @@ using namespace std;
 
 unsigned int NCIUDADES;
 
-// Comunicadores que usan cada proceso
-MPI_Comm COMM_EQUILIBRADO_CARGA;	// Para la distribucion de la carga
-MPI_Comm COMM_DIFUSION_COTA;		// Para la difusion de una nueva cota superior detectada
-
 // Variables de cada proceso
 int id; 	// Identificador del proceso dentro de cada comunicador (coincide en ambos)
 int P;		// Numero de procesos que est�n resolviendo el problema
-int U;		// valor de cota superior
-int solicitante, hay_mensajes;
-MPI_Status status;
 
 void guardaEnArchivo(int n, double t)
 {
@@ -51,6 +44,9 @@ int main (int argc, char **argv) {
 		NCIUDADES = atoi(argv[1]);
 	}
 
+    extern MPI_Comm COMM_EQUILIBRADO_CARGA;
+    extern MPI_Comm COMM_DIFUSION_COTA;
+
 	// Duplicamos el comunicador para el proceso de deteccion de fin
 	MPI_Comm_dup(MPI_COMM_WORLD, &COMM_EQUILIBRADO_CARGA);
 	MPI_Comm_dup(MPI_COMM_WORLD, &COMM_DIFUSION_COTA);
@@ -58,7 +54,7 @@ int main (int argc, char **argv) {
 	// <== Valores que conocen todos los procesos
 	// ========================================>
 	int ** tsp0 = 0;
-	tNodo * nodo = new tNodo(),         	// nodo a explorar
+	tNodo * nodo = new tNodo(),        // nodo a explorar
 		  * nodoIzq = new tNodo(),        // hijo izquierdo
 		  * nodoDer = new tNodo(),        // hijo derecho
 		  * solucion = new tNodo();     	// mejor solucion
@@ -66,6 +62,7 @@ int main (int argc, char **argv) {
 				anterior;
 	bool 	fin = false,    // condicion de fin
 			nueva_U;       	// hay nuevo valor de c.s.
+    int U;		// valor de cota superior
 
 	siguiente = (id+1)%P;
 	anterior = (id-1+P)%P;

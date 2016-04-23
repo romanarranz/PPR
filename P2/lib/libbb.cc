@@ -25,6 +25,10 @@ const int PASIVO = 1;
 const int BLANCO = 0;
 const int NEGRO = 1;
 
+// Comunicadores que usan cada proceso
+MPI_Comm COMM_EQUILIBRADO_CARGA;	// Para la distribucion de la carga
+MPI_Comm COMM_DIFUSION_COTA;		// Para la difusion de una nueva cota superior detectada
+
 // Variables que indican el estado de cada proceso
 int estado;                 // Estado del proceso {ACTIVO, PASIVO}
 int anterior;               // Identificador del anterior proceso
@@ -32,6 +36,10 @@ int siguiente;              // Identificador del siguiente proceso
 int color;                  // Color del proceso {BLANCO,NEGRO}
 int color_token;            // Color del token la ultima vez que estaba en poder del proceso
 bool token_presente;        // Indica si el proceso posee el token
+int solicitante, hay_mensajes;
+MPI_Status status;
+
+// Variables para la difusion de cota superior
 bool difundir_cs_local;	    // Indica si el proceso puede difundir su cota inferior local
 bool pendiente_retorno_cs;	// Indica si el proceso esta esperando a recibir la cota inferior de otro proceso
 
