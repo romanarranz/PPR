@@ -1,12 +1,14 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#define SLEEP_TIME 1000000         // 1000000 microsegundos = 1 segundo
+
 #define DEBUG_EQUILIBRADO true  // mensajes activos
-#define DEBUG_EQ_SLEEP false     // sleeps activos
+#define DEBUG_EQ_SLEEP true     // sleeps activos
 
 // depuracion de la cota superior
 #define DEBUG_COTA false        // mensajes activos
-#define DEBUG_CS_SLEEP false     // sleeps activos
+#define DEBUG_CS_SLEEP false    // sleeps activos
 
 #include <iostream>
 #include <unistd.h>

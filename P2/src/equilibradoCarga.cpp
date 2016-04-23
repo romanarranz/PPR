@@ -14,7 +14,7 @@ const int PASIVO = 1;
 const int BLANCO = 0;
 const int NEGRO = 1;
 
-tNodo *solucionLocal = new tNodo();
+tNodo *solucionLocal;
 
 void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 	#if !DEBUG_EQUILIBRADO
@@ -27,15 +27,15 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 
 	if(pila->vacia()) { // el proceso no tiene trabajo: pide a otros procesos
 		cout << "[EQ] " << id << " NO tiene nodos " << endl;
-		#if !DEBUG_EQ_SLEEP
-			sleep(1);
+		#if DEBUG_EQ_SLEEP
+			usleep(SLEEP_TIME);
 		#endif
 
 		//ENVIAR PETICION DE TRABAJO AL PROCESO (id+1)%P
 		MPI_Send(&id, 1, MPI_INT, siguiente, PETICION, COMM_EQUILIBRADO_CARGA);
 		cout << "[EQ] " << id << " tiene la pila vacia y le manda peticion a " << siguiente << endl;
 		#if DEBUG_EQ_SLEEP
-			sleep(1);
+			usleep(SLEEP_TIME);
 		#endif
 
 		while(pila->vacia() && !(*fin)){
@@ -44,7 +44,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &status);
 			cout << "[EQ] " << id << " SONDEO" << endl;
 			#if DEBUG_EQ_SLEEP
-				sleep(1);
+				usleep(SLEEP_TIME);
 			#endif
 
 			switch(status.MPI_TAG){
@@ -52,7 +52,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					estado = ACTIVO;
 					cout << "[EQ] " << id << " recibio un mensaje de nodos" << endl;
 					#if DEBUG_EQ_SLEEP
-						sleep(1);
+						usleep(SLEEP_TIME);
 					#endif
 
 					int cantidadNodos;
@@ -64,7 +64,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					pila->tope = cantidadNodos;
 					cout << "[EQ] " << id << " recibio nodos, tiene ahora " << pila->tope << " nodos " << endl;
 					#if DEBUG_EQ_SLEEP
-						sleep(1);
+						usleep(SLEEP_TIME);
 					#endif
 
 					break;
@@ -75,14 +75,14 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					MPI_Recv(&solicitante, 1, MPI_INT, anterior, PETICION, COMM_EQUILIBRADO_CARGA, &status);
 					cout << "[EQ] " << id << " recibio un mensaje de peticion de " << anterior << endl;
 					#if DEBUG_EQ_SLEEP
-						sleep(1);
+						usleep(SLEEP_TIME);
 					#endif
 
 					// ENVIO EL MENSAJE AL SIGUIENTE
 					MPI_Send(&solicitante, 1, MPI_INT, siguiente, PETICION, COMM_EQUILIBRADO_CARGA);
 					cout << "[EQ] " << id << " le pasa la peticion a " << siguiente << endl;
 					#if DEBUG_EQ_SLEEP
-						sleep(1);
+						usleep(SLEEP_TIME);
 					#endif
 
 					if(solicitante == id){ // el mensaje dio la vuelta al anillo de procesos y ha vuelto al solicitante original
@@ -90,33 +90,33 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 						estado = PASIVO;
 						cout << "[FIN] " << id << " la peticion le ha llegado de vuelta y se queda PASIVO" << endl;
 						#if DEBUG_EQ_SLEEP
-							sleep(1);
+							usleep(SLEEP_TIME);
 						#endif
 
-						// Cuando un proceso ademas tiene el testigo se reinicia la deteccion de fin enviandolo al proceso anterior
+						// Cuando un proceso ademas tiene el testigo, se reinicia la deteccion de fin enviandolo al proceso anterior
 						if(token_presente){
 							if(id == 0){
 								color_token = BLANCO;
 								cout << "[FIN] " << id << " ademas tiene el token:" << color_token << endl;
 								#if DEBUG_EQ_SLEEP
-									sleep(1);
+									usleep(SLEEP_TIME);
 								#endif
 							}
 							else{
 								color_token = color;
 								cout << "[FIN] " << id << " ademas tiene el token:" << color_token << endl;
 								#if DEBUG_EQ_SLEEP
-									sleep(1);
+									usleep(SLEEP_TIME);
 								#endif
 							}
 
 							// como el proceso esta pasivo le mandamos el token al anterior
-							MPI_Send(&color_token, 1, MPI_INT, anterior, TOKEN, COMM_EQUILIBRADO_CARGA);
+							MPI_Send(nullptr, 0, MPI_INT, anterior, TOKEN, COMM_EQUILIBRADO_CARGA);
 							token_presente = false;
 							color = BLANCO;
 							cout << "[FIN] " << id << " PASIVO le manda el token a " << anterior << " y queda LIMPIO el proceso" << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 						}
 					}
@@ -124,6 +124,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					break;
 
 				case TOKEN: // LE HA LLEGADO UN TOKEN AL PROCESO
+					MPI_Recv(nullptr, 0, MPI_INT, siguiente, TOKEN, COMM_EQUILIBRADO_CARGA, &status);
 					token_presente = true;
 					cout << "[FIN] " << id;
 
@@ -131,7 +132,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					if(estado == PASIVO){
 						cout << " PASIVO recibio el token:" << color_token << endl;
 						#if DEBUG_EQ_SLEEP
-							sleep(1);
+							usleep(SLEEP_TIME);
 						#endif
 
 						// y ademas el token ha dado la vuelta hasta el 0 que lo inicio y permanece limpio llegamos al fin
@@ -139,14 +140,22 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							*fin = true;
 							cout << "[FIN] el token ha dado la vuelta completa hasta el 0 -> FIN VERDADERO" << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
+							#endif
+
+							// [PUBLICAR SOLUCION] ENVIAR EL MENSAJE DE FIN AL SIGUIENTE
+							MPI_Send(&solucion->datos[0], solucion->size(), MPI_INT, siguiente, FIN, COMM_EQUILIBRADO_CARGA);
+							cout << "[SOL] " << id << " comienza a publicar la solucion y se la pasa a " << siguiente << endl;
+							#if DEBUG_EQ_SLEEP
+								usleep(SLEEP_TIME);
 							#endif
 
 							// [PUBLICAR SOLUCION] RECIBIR EL MENSAJE DE FIN DEL ANTERIOR
+							solucionLocal = new tNodo();
 							MPI_Recv(&solucionLocal->datos[0], solucion->size(), MPI_INT, anterior, FIN, COMM_EQUILIBRADO_CARGA, &status);
 							cout << "[SOL] solucion recibida, se la pasamos a " << siguiente << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 
 							// si la solucion local que tiene el proceso es mejor que la solucion final la reemplazamos
@@ -154,9 +163,6 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 								CopiaNodo(solucionLocal, solucion);
 							}
 							delete solucionLocal;
-
-							// [PUBLICAR SOLUCION] ENVIAR EL MENSAJE DE FIN AL SIGUIENTE
-							MPI_Send(&solucion->datos[0], solucion->size(), MPI_INT, siguiente, FIN, COMM_EQUILIBRADO_CARGA);
 
 						}
 						else {
@@ -168,12 +174,12 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							}
 
 							// ENVIAR TOKEN AL ANTERIOR
-							MPI_Send(&color_token, 1, MPI_INT, anterior, TOKEN, COMM_EQUILIBRADO_CARGA);
+							MPI_Send(nullptr, 0, MPI_INT, anterior, TOKEN, COMM_EQUILIBRADO_CARGA);
 							color = BLANCO;
 							token_presente = false;
-							cout << "[FIN] " << id << " tiene que seguir enviando el token a " << anterior << endl;
+							cout << "[FIN] " << id << " tiene que seguir enviando el token:" << color_token << " a " << anterior << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 						}
 					}
@@ -184,18 +190,23 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 					*fin = true;
 
 					// [PUBLICAR SOLUCION] RECIBIR EL MENSAJE DE FIN DEL ANTERIOR
+					solucionLocal = new tNodo();
 					MPI_Recv(&solucionLocal->datos[0], solucion->size(), MPI_INT, anterior, FIN, COMM_EQUILIBRADO_CARGA, &status);
 					// si la solucion local que tiene el proceso es mejor que la solucion final la reemplazamos
 					if(solucionLocal->ci() < solucion->ci()){
 						CopiaNodo(solucionLocal, solucion);
 					}
 					delete solucionLocal;
+					cout << "[SOL] " << id << " ha recibido la mejor solucion" << endl;
+					#if DEBUG_EQ_SLEEP
+						usleep(SLEEP_TIME);
+					#endif
 
 					// [PUBLICAR SOLUCION] ENVIAR EL MENSAJE DE FIN AL SIGUIENTE
 					MPI_Send(&solucion->datos[0], solucion->size(), MPI_INT, siguiente, FIN, COMM_EQUILIBRADO_CARGA);
-					cout << "[SOL] solucion recibida, se la pasamos a " << siguiente << endl;
+					cout << "[SOL] " << id << " le pasa la solucion a " << siguiente << endl;
 					#if DEBUG_EQ_SLEEP
-						sleep(1);
+						usleep(SLEEP_TIME);
 					#endif
 
 					break;
@@ -206,14 +217,14 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 		if(!(*fin)){
 			cout << "[EQ] " << id << " SI tiene nodos para trabajar \n";
 			#if DEBUG_EQ_SLEEP
-				sleep(1);
+				usleep(SLEEP_TIME);
 			#endif
 
 			// sondear si hay mensajes pendientes de otros procesos --> NO BLOQUEANTE
 			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &hay_mensajes, &status);
 			cout << "[EQ] " << id << " SONDEO" << endl;
 			#if DEBUG_EQ_SLEEP
-				sleep(1);
+				usleep(SLEEP_TIME);
 			#endif
 
 			while(hay_mensajes){ // atiende peticiones mientras haya mensajes
@@ -229,7 +240,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							pila->divide(pila2);
 							cout << "[EQ] " << id  << " tiene " << pila->tope << " nodos " << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 
 							// ENVIAR NODOS AL PROCESO SOLICITANTE
@@ -237,7 +248,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							delete &pila2;
 							cout << "[EQ] " << id  << " envia nodos al solicitante " << solicitante << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 
 
@@ -245,7 +256,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 								color = NEGRO;
 								cout << "[FIN] " << id << " queda manchado porque le cede nodos al proceso " << solicitante << endl;
 								#if DEBUG_EQ_SLEEP
-									sleep(1);
+									usleep(SLEEP_TIME);
 								#endif
 							}
 
@@ -255,7 +266,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 							MPI_Send(&solicitante, 1, MPI_INT, siguiente, PETICION, COMM_EQUILIBRADO_CARGA);
 							cout << "[EQ] " << id << " no tiene suficientes nodos para pasarselos a " << solicitante << " asi que se los pasa a " << siguiente << endl;
 							#if DEBUG_EQ_SLEEP
-								sleep(1);
+								usleep(SLEEP_TIME);
 							#endif
 						}
 
@@ -263,18 +274,18 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 						MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &hay_mensajes, &status);
 						cout << "[EQ] " << id << " SONDEO" << endl;
 						#if DEBUG_EQ_SLEEP
-							sleep(1);
+							usleep(SLEEP_TIME);
 						#endif
 
 						break;
 
 					case TOKEN: // al proceso que aun tiene nodos para trabajar le ha llegado el token
 						// recibimos el token del siguiente
-						MPI_Recv(&color_token, 1, MPI_INT, siguiente, TOKEN, COMM_EQUILIBRADO_CARGA, &status);
+						MPI_Recv(nullptr, 0, MPI_INT, siguiente, TOKEN, COMM_EQUILIBRADO_CARGA, &status);
 						token_presente = true;
 						cout << "[FIN] " << id << " recibe el token de " << siguiente << " pero aun le quedan nodos en la pila " << endl;
 						#if DEBUG_EQ_SLEEP
-							sleep(1);
+							usleep(SLEEP_TIME);
 						#endif
 
 						break;
@@ -284,7 +295,7 @@ void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion){
 				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_EQUILIBRADO_CARGA, &hay_mensajes, &status);
 				cout << "[EQ] " << id << " SONDEO" << endl;
 				#if DEBUG_EQ_SLEEP
-					sleep(1);
+					usleep(SLEEP_TIME);
 				#endif
 			} // fin while hay mensajes
 		} // fin if !fin

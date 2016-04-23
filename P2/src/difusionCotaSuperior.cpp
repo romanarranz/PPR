@@ -12,7 +12,9 @@ void DifusionCotaSuperior(int *U){
         // Enviar valor local de cs al proceso (id+1)%P;
 		MPI_Send(&U, 1, MPI_INT, siguiente, 0, COMM_DIFUSION_COTA);
 		cout << "[CS] " << id << " va a difundir su cs " << *U << " y no esta pendiente de retorno -> " << siguiente << endl;
-		sleep(1);
+		#if DEBUG_CS_SLEEP
+			usleep(SLEEP_TIME);
+		#endif
 
         pendiente_retorno_cs = true;
         difundir_cs_local = false;
@@ -21,12 +23,16 @@ void DifusionCotaSuperior(int *U){
     // Sondear si hay mensajes de cota superior pendientes
 	MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, COMM_DIFUSION_COTA, &hay_mensajes, &status);
 	cout << "[CS] " << id << " SONDEO CS " << endl;
-	sleep(1);
+	#if DEBUG_CS_SLEEP
+		usleep(SLEEP_TIME);
+	#endif
 
     while(hay_mensajes) // mientras tengamos mensajes
     {
 		cout << "[CS] " << id << " tiene mensaje del sondeo " << endl;
-		sleep(1);
+		#if DEBUG_CS_SLEEP
+			usleep(SLEEP_TIME);
+		#endif
 
 		int cotaSup;
 
@@ -41,7 +47,9 @@ void DifusionCotaSuperior(int *U){
             // Enviar valor local de cs al proceso (id+1)%P;
 			MPI_Send(&U, 1, MPI_INT, siguiente, 0, COMM_DIFUSION_COTA);
 			cout << "[CS] " << id << " ha dado la vuelta completa y le envia la cs a " << siguiente << endl;
-			sleep(1);
+			#if DEBUG_CS_SLEEP
+				usleep(SLEEP_TIME);
+			#endif
 
 			pendiente_retorno_cs = true;
             difundir_cs_local = false;

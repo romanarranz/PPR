@@ -159,8 +159,8 @@ int main (int argc, char **argv) {
 		iteraciones++;
 
         if(DEBUG_MAIN){
-		          cout << "[MAIN] "<< id << " it: " << iteraciones << ", pila: " << pila->tamanio() << endl;
-		      sleep(1);
+		    cout << "[MAIN] "<< id << " it: " << iteraciones << ", pila: " << pila->tamanio() << endl;
+		    sleep(1);
         }
 	}
 

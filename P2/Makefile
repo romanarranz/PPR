@@ -26,7 +26,8 @@ LIB = lib
 BIN = bin
 CXX = mpic++
 CC  = mpicc
-CPPFLAGS = -Wall -I$(INC) -I$(LIB) -O3 -c
+WARNINGS = -Wall
+CPPFLAGS = -I$(INC) -I$(LIB) -O3 -c
 
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
@@ -65,7 +66,7 @@ $(OBJ)/libbb.o: $(LIB)/libbb.cc
 	@echo "Creando ./obj/bbseq.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-.PHONY: clean zip tar plot
+.PHONY: clean zip tar plot style
 
 # ************ Limpieza ************
 clean:
@@ -80,3 +81,6 @@ zip:
 tar:
 	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
 	tar -cvzf $(CURRENT_DIR).tar.gz src lib obj input include enunciados bin Makefile
+
+style:
+	@echo "http://astyle.sourceforge.net"
