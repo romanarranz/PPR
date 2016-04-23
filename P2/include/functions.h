@@ -1,9 +1,12 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define DEBUG_EQUILIBRADO false
-#define DEBUG_COTA true
-#define DEBUG_DFIN false
+#define DEBUG_EQUILIBRADO true  // mensajes activos
+#define DEBUG_EQ_SLEEP false     // sleeps activos
+
+// depuracion de la cota superior
+#define DEBUG_COTA false        // mensajes activos
+#define DEBUG_CS_SLEEP false     // sleeps activos
 
 #include <iostream>
 #include <unistd.h>
@@ -18,7 +21,6 @@ extern int siguiente, anterior;
 extern int estado;
 extern int color;
 extern int color_token;
-extern int token;
 extern bool token_presente;
 extern const int ACTIVO, PASIVO;
 extern const int BLANCO, NEGRO;
@@ -36,7 +38,7 @@ extern int hay_mensajes, solicitante;
 extern MPI_Status status;
 extern const int PETICION, NODOS, TOKEN, FIN;
 
-void EquilibrarCarga(tPila * pila, bool *fin);
+void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion);
 void DifusionCotaSuperior(int *U);
 
 #endif

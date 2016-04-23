@@ -1,0 +1,48 @@
+-------------------------------------------------------------
+  0  2  3 55  6 44 33 34  4 55
+  5  0 11 21 12 14 11 12 10 19
+ 34  0  0 22 22 34 41 12 60  9
+ 24  2 11  0 82 84 21 12 16 19
+  4  3 21 13  0 34 43 12 15 29
+ 14  5 20 53 82  0 41 12 50 19
+  4 11 66 63 92 30  0 22 12 39
+ 22 32 12 73 22 34 41  0 14 49
+ 24 12 16 13 22 20 20 22  0 39
+ 54 15 66 53 52 35 10 42 42  0
+-------------------------------------------------------------
+[EQ] 2 NO tiene nodos 
+[EQ] 2 tiene la pila vacia y le manda peticion a 3
+[EQ] 1 NO tiene nodos 
+[EQ] 1 tiene la pila vacia y le manda peticion a 2
+[EQ] 3 NO tiene nodos 
+[EQ] 3 tiene la pila vacia y le manda peticion a 0
+[EQ] 0 NO tiene nodos 
+[EQ] 0 tiene la pila vacia y le manda peticion a 1
+[EQ] 2 SONDEO
+[EQ] 3 SONDEO
+[EQ] 0 SONDEO
+[EQ] 1 SONDEO
+[EQ] 1 recibio un mensaje de peticion de 0
+[EQ] 2 recibio un mensaje de peticion de 1
+[EQ] 0 recibio un mensaje de peticion de 3
+[EQ] 3 recibio un mensaje de peticion de 2
+[EQ] 0 le pasa la peticion a 1
+[EQ] 1 le pasa la peticion a 2
+[EQ] 2 le pasa la peticion a 3
+[EQ] 3 le pasa la peticion a 0
+[EQ] 2 SONDEO
+[EQ] 3 SONDEO
+[EQ] 0 SONDEO
+[EQ] 1 SONDEO
+[EQ] 0 recibio un mensaje de peticion de 3
+[EQ] 1 recibio un mensaje de peticion de 0
+[EQ] 2 recibio un mensaje de peticion de 1
+[EQ] 3 recibio un mensaje de peticion de 2
+[EQ] 0 le pasa la peticion a 1
+[EQ] 1 le pasa la peticion a 2
+[EQ] 2 le pasa la peticion a 3
+[EQ] 3 le pasa la peticion a 0
+[EQ] 2 SONDEO
+[EQ] 0 SONDEO
+[EQ] 1 SONDEO
+[EQ] 3 SONDEO

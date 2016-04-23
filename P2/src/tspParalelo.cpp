@@ -80,18 +80,19 @@ int main (int argc, char **argv) {
 
 	// solo P0 rellena la matriz
 	if(id == 0){
-        token_presente = true;
         tsp0 = reservarMatrizCuadrada(NCIUDADES); 	// reserva memoria a la matriz
 		LeerMatriz (argv[2], tsp0);    				// lee matriz de fichero
 		fin = Inconsistente(tsp0);					// en caso de que sea consistente devuelve false
+        token_presente = true;
 
 		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
 		MPI_Bcast(&fin, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 	}
 	else {
-        token_presente = false;
 		MPI_Bcast(&tsp0[0][0], NCIUDADES * NCIUDADES, MPI_INT, 0, MPI_COMM_WORLD);
-		EquilibrarCarga(pila, &fin);
+
+        token_presente = false;
+		EquilibrarCarga(pila, &fin, solucion);
 
         if(!fin)
             pila->pop(*nodo);
@@ -149,18 +150,18 @@ int main (int argc, char **argv) {
 			}
 		}
 
-		DifusionCotaSuperior(&U);
+		//DifusionCotaSuperior(&U);
 		if (nueva_U) pila->acotar(U);
 
-		EquilibrarCarga(pila, &fin);
+		EquilibrarCarga(pila, &fin, solucion);
 		if(!fin) pila->pop(*nodo);
 
 		iteraciones++;
-		cout << "[MAIN]"<< id << " it: " << iteraciones << ", pila: " << pila->tamanio() << endl;
-		//sleep(1);
 
-        if(iteraciones == 206)
-            fin = true;
+        if(DEBUG_MAIN){
+		          cout << "[MAIN] "<< id << " it: " << iteraciones << ", pila: " << pila->tamanio() << endl;
+		      sleep(1);
+        }
 	}
 
     t = MPI::Wtime()-t;

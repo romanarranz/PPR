@@ -43,6 +43,10 @@ public:
 			datos = new int[2 * NCIUDADES];
 		}
 
+		int size(){
+			return 2*NCIUDADES;
+		}
+
 		int ci(){
 			return datos[0];
 		}
