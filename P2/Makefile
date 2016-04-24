@@ -79,21 +79,28 @@ clean:
 # ************ Compresion ************
 zip:
 	@echo "Creando "$(CURRENT_DIR)".zip..."
-	zip $(CURRENT_DIR) -r src lib obj input include enunciados bin Makefile
+	zip $(CURRENT_DIR) -r src bin enunciados include input lib obj output src Makefile
 
 tar:
 	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
-	tar -cvzf $(CURRENT_DIR).tar.gz src lib obj input include enunciados bin Makefile
+	tar -cvzf $(CURRENT_DIR).tar.gz bin enunciados include input lib obj output src Makefile
 
 style:
-	@echo "http://astyle.sourceforge.net"
+	@echo "Haciendo una copia de los originales..."
+	@if [ ! -d "src/old" ]; then mkdir src/old; fi
+	@-cp src/*.cpp src/old||:
+	@echo "Haciendo legible el codigo..."
+	@astyle --style=allman --indent=spaces=4 --pad-header --delete-empty-lines --align-pointer=name --align-reference=middle \
+	--break-closing-brackets --add-brackets --convert-tabs --close-templates --mode=c --indent-preproc-block --indent-preproc-cond \
+	--indent-preproc-define --indent-col1-comments src/*.cpp
 
 # con ||: make no nos muestra el error
 # con @- make ignora los errores y no muestra la salida de la ejecucion de esta sentencia
 debug:
 	@echo "Ejecutando valgrind..."
-	@-mpirun -np 4 valgrind --tool=memcheck --leak-check=full bin/tspParalelo 10 input/tsp10.1 &> output/debug_full.txt ||:
+	@-mpirun -np 4 valgrind --tool=memcheck --leak-check=full -v bin/tspParalelo 10 input/tsp10.1 &> output/debug_full.txt ||:
 	@echo "Filtrando resultados por .cpp..."
 	@grep ".cpp" output/debug_full.txt > output/debug.txt
 	@echo "Ordenando y borrando lineas repetidas..."
 	@sort -u output/debug.txt -o output/debug.txt
+	@echo "Salida: output/debug.txt, output/debug_full.txt"

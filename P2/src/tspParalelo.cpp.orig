@@ -18,8 +18,8 @@ int id;     // Identificador del proceso dentro de cada comunicador (coincide en
 int P;      // Numero de procesos que est�n resolviendo el problema
 
 // Comunicadores que usan cada proceso
-MPI_Comm COMM_EQUILIBRADO_CARGA;    // Para la distribucion de la carga
-MPI_Comm COMM_DIFUSION_COTA;        // Para la difusion de una nueva cota superior detectada
+MPI_Comm COMM_EQUILIBRADO_CARGA;	// Para la distribucion de la carga
+MPI_Comm COMM_DIFUSION_COTA;		// Para la difusion de una nueva cota superior detectada
 
 int solicitante, hay_mensajes;
 MPI_Status status;

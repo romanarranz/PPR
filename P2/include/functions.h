@@ -40,6 +40,9 @@ extern int hay_mensajes, solicitante;
 extern MPI_Status status;
 extern const int PETICION, NODOS, TOKEN, FIN;
 
+extern tNodo *solucionLocal;
+extern tPila *pila2;
+
 void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion);
 void DifusionCotaSuperior(int *U);
 
