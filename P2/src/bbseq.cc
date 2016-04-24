@@ -4,12 +4,28 @@
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
+#include <string.h>
 #include <mpi.h>
 #include "libbb.h"
 
 using namespace std;
 
 unsigned int NCIUDADES;
+
+void guardaEnArchivo(int n, double t)
+{
+    ofstream archivo ("output/tspS.dat" , ios_base::app | ios_base::out);
+    if (archivo.is_open())
+    {
+        archivo << to_string(n) + "\t" + to_string(t) + "\n";
+        archivo.close();
+    }
+    else
+    {
+        cout << "No se puede abrir el archivo";
+    }
+}
 
 int main (int argc, char **argv) {
 
@@ -107,8 +123,9 @@ MPI::Init(argc,argv);
 	printf ("Solucion: \n");
 
 	EscribeNodo(&solucion);
-    cout<< "Tiempo gastado= "<<t<<endl;
+    cout<< "Tiempo gastado = " << t << endl;
 	cout << "Numero de iteraciones = " << iteraciones << endl << endl;
+	guardaEnArchivo(atoi(argv[1]), t);
 
 	liberarMatriz(tsp0);
 }

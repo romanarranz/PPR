@@ -85,6 +85,45 @@ tar:
 	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
 	tar -cvzf $(CURRENT_DIR).tar.gz bin enunciados include input lib obj output src Makefile
 
+# ************ Grafica ************
+plot:
+	@echo "Creando grafica.png..."
+	@gnuplot <<< "\
+		set terminal png size 800,600 font 'Verdana,10'; \
+		set output 'grafica.png'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Viajante de Comercio'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de computo (seg)'; \
+		set key default; \
+		set xr [0.0:35]; \
+		set yr [0:4]; \
+		plot 'output/tspS.dat' using 1:2 title 'TSP Secuencial' with linespoints pt 7 ps 1, \
+		     'output/tspP.dat' using 1:2 title 'TSP PDistribuido' with linespoints pt 6 ps 1"
+	@echo "Creando ganancia.png..."
+	@gnuplot <<< "\
+		set terminal png size 800,600 font 'Verdana,10'; \
+		set output 'ganancia.png'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Ganancia TSPP Distribuido frente a Secuencial'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Ganancia (S)'; \
+		set key default; \
+		set xr [0.0:35]; \
+		set yr [0:4]; \
+		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
+		     'output/gananciaP.dat' using 1:2 title 'GananciaP' with linespoints pt 6 ps 1"
+
 style:
 	@echo "Haciendo una copia de los originales..."
 	@if [ ! -d "src/old" ]; then mkdir src/old; fi

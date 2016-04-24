@@ -3,8 +3,8 @@
 
 #define SLEEP_TIME 1000000         // 1000000 microsegundos = 1 segundo
 
-#define DEBUG_EQUILIBRADO true  // mensajes activos
-#define DEBUG_EQ_SLEEP true     // sleeps activos
+#define DEBUG_EQUILIBRADO false  // mensajes activos
+#define DEBUG_EQ_SLEEP false     // sleeps activos
 
 // depuracion de la cota superior
 #define DEBUG_COTA false        // mensajes activos
