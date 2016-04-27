@@ -1,15 +1,6 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define SLEEP_TIME 1000000         // 1000000 microsegundos = 1 segundo
-
-#define DEBUG_EQUILIBRADO false  // mensajes activos
-#define DEBUG_EQ_SLEEP false     // sleeps activos
-
-// depuracion de la cota superior
-#define DEBUG_COTA false        // mensajes activos
-#define DEBUG_CS_SLEEP false    // sleeps activos
-
 #include <iostream>
 #include <unistd.h>
 #include "mpi.h"
@@ -44,6 +35,6 @@ extern tNodo *solucionLocal;
 extern tPila *pila2;
 
 void EquilibrarCarga(tPila * pila, bool *fin, tNodo *solucion);
-void DifusionCotaSuperior(int *U);
+void DifusionCotaSuperior(int *U, bool *nueva_U);
 
 #endif

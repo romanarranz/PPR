@@ -35,7 +35,7 @@ CPPFLAGS = $(DEBUG) -I$(INC) -I$(LIB) -c
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
 
-all: $(BIN)/tspSecuencial $(BIN)/tspParalelo
+all: $(BIN)/tspSecuencial $(BIN)/tspParalelo $(BIN)/tspParaleloDebug
 
 # ************ Ejecutables ************
 
@@ -45,6 +45,10 @@ $(BIN)/tspSecuencial: $(OBJ)/bbseq.o $(OBJ)/libbb.o
 
 $(BIN)/tspParalelo: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o $(OBJ)/equilibradoCarga.o $(OBJ)/difusionCotaSuperior.o
 	@echo "Creando ./bin/tspParalelo..."
+	@$(CXX) -o $@ $^
+
+$(BIN)/tspParaleloDebug: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o $(OBJ)/equilibradoCarga_debug.o $(OBJ)/difusionCotaSuperior_debug.o
+	@echo "Creando ./bin/tspParaleloDebug..."
 	@$(CXX) -o $@ $^
 
 # ************ Objetos ************
@@ -61,15 +65,23 @@ $(OBJ)/equilibradoCarga.o: $(SRC)/equilibradoCarga.cpp
 	@echo "Creando ./obj/equilibradoCarga.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
+$(OBJ)/equilibradoCarga_debug.o: $(SRC)/equilibradoCarga_debug.cpp
+	@echo "Creando ./obj/equilibradoCarga_debug.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
 $(OBJ)/difusionCotaSuperior.o: $(SRC)/difusionCotaSuperior.cpp
 	@echo "Creando ./obj/difusionCotaSuperior.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/difusionCotaSuperior_debug.o: $(SRC)/difusionCotaSuperior_debug.cpp
+	@echo "Creando ./obj/difusionCotaSuperior_debug.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(OBJ)/libbb.o: $(LIB)/libbb.cc
 	@echo "Creando ./obj/bbseq.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
-.PHONY: clean zip tar plot style debug
+.PHONY: clean zip tar plot style debug license
 
 # ************ Limpieza ************
 clean:
@@ -143,3 +155,7 @@ debug:
 	@echo "Ordenando y borrando lineas repetidas..."
 	@sort -u output/debug.txt -o output/debug.txt
 	@echo "Salida: output/debug.txt, output/debug_full.txt"
+
+license:
+	@echo "Generando licencia..."
+	@license install mit -y 2016 -n "ROMÁN ARRANZ GUERRERO"
