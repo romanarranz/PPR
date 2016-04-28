@@ -35,7 +35,7 @@ CPPFLAGS = $(DEBUG) -I$(INC) -I$(LIB) -c
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
 
-all: $(BIN)/tspSecuencial $(BIN)/tspParalelo $(BIN)/tspParaleloDebug
+all: $(BIN)/tspSecuencial $(BIN)/tspParalelo $(BIN)/tspParaleloDebug $(BIN)/creaProblemaTSP
 
 # ************ Ejecutables ************
 
@@ -49,6 +49,10 @@ $(BIN)/tspParalelo: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o $(OBJ)/equilibradoCarga.
 
 $(BIN)/tspParaleloDebug: $(OBJ)/tspParalelo.o $(OBJ)/libbb.o $(OBJ)/equilibradoCarga_debug.o $(OBJ)/difusionCotaSuperior_debug.o
 	@echo "Creando ./bin/tspParaleloDebug..."
+	@$(CXX) -o $@ $^
+
+$(BIN)/creaProblemaTSP: $(OBJ)/creaProblemaTSP.o
+	@echo "Creando ./bin/creaProblemaTSP..."
 	@$(CXX) -o $@ $^
 
 # ************ Objetos ************
@@ -79,6 +83,10 @@ $(OBJ)/difusionCotaSuperior_debug.o: $(SRC)/difusionCotaSuperior_debug.cpp
 
 $(OBJ)/libbb.o: $(LIB)/libbb.cc
 	@echo "Creando ./obj/bbseq.o..."
+	@$(CXX) $(CPPFLAGS) $< -o $@
+
+$(OBJ)/creaProblemaTSP.o: $(SRC)/creaProblemaTSP.cpp
+	@echo "Creando ./obj/creaProblemaTSP.o..."
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 .PHONY: clean zip tar plot style debug license
@@ -113,8 +121,8 @@ plot:
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
-		set xr [0.0:35]; \
-		set yr [0:4]; \
+		set xr [0.0:50]; \
+		set yr [0:100]; \
 		plot 'output/tspS.dat' using 1:2 title 'TSP Secuencial' with linespoints pt 7 ps 1, \
 		     'output/tspP.dat' using 1:2 title 'TSP PDistribuido' with linespoints pt 6 ps 1"
 	@echo "Creando ganancia.png..."
@@ -131,8 +139,8 @@ plot:
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Ganancia (S)'; \
 		set key default; \
-		set xr [0.0:35]; \
-		set yr [0:4]; \
+		set xr [0.0:50]; \
+		set yr [0:10]; \
 		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
 		     'output/gananciaP.dat' using 1:2 title 'GananciaP' with linespoints pt 6 ps 1"
 
