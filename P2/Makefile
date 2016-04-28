@@ -109,8 +109,8 @@ tar:
 plot:
 	@echo "Creando grafica.png..."
 	@gnuplot <<< "\
-		set terminal png size 800,600 font 'Verdana,10'; \
-		set output 'grafica.png'; \
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'grafica.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
@@ -127,8 +127,8 @@ plot:
 		     'output/tspP.dat' using 1:2 title 'TSP PDistribuido' with linespoints pt 6 ps 1"
 	@echo "Creando ganancia.png..."
 	@gnuplot <<< "\
-		set terminal png size 800,600 font 'Verdana,10'; \
-		set output 'ganancia.png'; \
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'ganancia.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
