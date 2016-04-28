@@ -155,16 +155,22 @@ int main (int argc, char *argv[])
 
     // <== Mostramos resultados
     // ========================================>
-    cout.clear();
+    double tNodoExploradoNormalizado;
+    double tNodoExplorado = t/iteraciones;  // el tiempo que tarda en explorar un nodo en una iteracion
+    cout << id << "\t-> " << "iteraciones: " << iteraciones << endl
+               << "\t-> Titeracion/nodo: " << tNodoExplorado << endl << endl;
+
+
+    MPI_Reduce(&tNodoExplorado, &tNodoExploradoNormalizado, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     if (id == 0)
     {
         printf ("Solucion: \n");
         EscribeNodo(solucion);
-        cout<< "Tiempo gastado = " << t << endl;
+        cout << "Tiempo gastado = " << t << endl;
+        cout << "Tiempo medio por nodo explorado = " << tNodoExploradoNormalizado/P << endl;
         guardaEnArchivo(atoi(argv[1]), t);
     }
     sleep(1);
-    cout << id << " -> " << "iteraciones: " << iteraciones << endl;
 
     // Liberamos memoria
     liberarMatriz(tsp0);
