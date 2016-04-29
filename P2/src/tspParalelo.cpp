@@ -24,9 +24,9 @@ MPI_Status status;
 tNodo *solucionLocal;
 tPila *pila2;
 
-void guardaEnArchivo(int n, double t)
+void guardarArchivo(string outputFile, int n, double t)
 {
-    ofstream archivo ("output/tspP.dat" , ios_base::app | ios_base::out);
+    ofstream archivo (outputFile, ios_base::app | ios_base::out);
     if (archivo.is_open()){
         archivo << to_string(n) + "\t" + to_string(t) + "\n";
         archivo.close();
@@ -168,7 +168,18 @@ int main (int argc, char *argv[])
         EscribeNodo(solucion);
         cout << "Tiempo gastado = " << t << endl;
         cout << "Tiempo medio por nodo explorado = " << tNodoExploradoNormalizado/P << endl;
-        guardaEnArchivo(atoi(argv[1]), t);
+
+        // Guardamos los resultados en dos archivos distintos, uno que guarda los tiempos de N elementos para X hebras,
+        // y otro para el tiempo/nodoExplorado para N elementos y X hebras
+        string base = "output/tsp";
+        string archivoTFinal = base+to_string(P);
+        archivoTFinal += "P.dat";
+
+        string archivoTNodos = base+to_string(P);
+        archivoTNodos += "PNodos.dat";
+
+        guardarArchivo(archivoTFinal, atoi(argv[1]), t);
+        guardarArchivo(archivoTNodos, atoi(argv[1]), tNodoExploradoNormalizado);
     }
     sleep(1);
 
