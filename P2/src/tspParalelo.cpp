@@ -1,3 +1,7 @@
+/*
+    Ejemplo de uso: mpirun -np 3 bin/tspParalelo 10 input/tsp10.1
+*/
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -140,7 +144,8 @@ int main (int argc, char *argv[])
             }
         }
 
-        DifusionCotaSuperior(&U, &nueva_U);
+        // Comentar difusionCota para ver la diferencia de tiempos, cuando se produce poda y cuando no
+        // DifusionCotaSuperior(&U, &nueva_U);
         if (nueva_U)
             pila->acotar(U);
 

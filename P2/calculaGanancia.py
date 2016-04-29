@@ -67,7 +67,7 @@ else:
 
 	# <== Guardo el diccionario en un fichero ganancia.dat
 	# =========================================>
-	archivoSalida = "ganancia"+archivoTSPP[-5:] # me quedo con la parte de P.dat o S.dat de los archivos
+	archivoSalida = raw_input("Indica el nombre del archivo de salida: ")
 	flujoSalida = open("output/"+archivoSalida, 'w')
 
 	for key, value in sorted(ganancia.iteritems()):

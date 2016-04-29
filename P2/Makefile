@@ -107,42 +107,103 @@ tar:
 
 # ************ Grafica ************
 plot:
-	@echo "Creando grafica.png..."
+	@echo "Creando TSPCota.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
-		set output 'grafica.gif'; \
+		set output 'TSPCota.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Viajante de Comercio'; \
+		set title 'TSP con Difusion de Cota'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
 		set xr [0.0:50]; \
 		set yr [0:100]; \
-		plot 'output/tspS.dat' using 1:2 title 'TSP Secuencial' with linespoints pt 7 ps 1, \
-		     'output/tspP.dat' using 1:2 title 'TSP PDistribuido' with linespoints pt 6 ps 1"
-	@echo "Creando ganancia.png..."
+		plot 'output/cota/tspS.dat' using 1:2 title 'TSP S' with linespoints pt 7 ps 1, \
+		     'output/cota/tsp2P.dat' using 1:2 title 'TSP 2P' with linespoints pt 6 ps 1, \
+			 'output/cota/tsp3P.dat' using 1:2 title 'TSP 3P' with linespoints pt 5 ps 1"
+	@echo "Creando TSPCotaNodos.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
-		set output 'ganancia.gif'; \
+		set output 'TSPCotaNodos.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Ganancia TSPP Distribuido frente a Secuencial'; \
+		set title 'TSP con Difusion de Cota'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de exploracion por Nodo (seg)'; \
+		set key default; \
+		set xr [0.0:50]; \
+		set yr [0:0.001]; \
+		plot 'output/cota/tspSNodos.dat' using 1:2 title 'TSP S' with linespoints pt 7 ps 1, \
+		     'output/cota/tsp2PNodos.dat' using 1:2 title 'TSP 2P' with linespoints pt 6 ps 1, \
+			 'output/cota/tsp3PNodos.dat' using 1:2 title 'TSP 3P' with linespoints pt 5 ps 1"
+	@echo "Creando gananciaTSPCota.gif..."
+	@gnuplot <<< "\
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'gananciaTSPCota.gif'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Ganancia TSP con Difusion de Cota'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Ganancia (S)'; \
 		set key default; \
 		set xr [0.0:50]; \
 		set yr [0:10]; \
-		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
-		     'output/gananciaP.dat' using 1:2 title 'GananciaP' with linespoints pt 6 ps 1"
+		plot 'output/cota/gananciaS_2P.dat' using 1:2 title 'Ganancia2P' with linespoints pt 7 ps 1, \
+		     'output/cota/gananciaS_3P.dat' using 1:2 title 'Ganancia3P' with linespoints pt 6 ps 1, \
+			 'output/cota/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 5 ps 1,"
+	@echo "Creando TSPNoCota.gif..."
+	@gnuplot <<< "\
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'TSPNoCota.gif'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'TSP sin Difusion de Cota'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de computo (seg)'; \
+		set key default; \
+		set xr [0.0:50]; \
+		set yr [0:100]; \
+		plot 'output/nocota/tspS.dat' using 1:2 title 'TSP S' with linespoints pt 7 ps 1, \
+		     'output/nocota/tsp2P.dat' using 1:2 title 'TSP 2P' with linespoints pt 6 ps 1, \
+			 'output/nocota/tsp3P.dat' using 1:2 title 'TSP 3P' with linespoints pt 5 ps 1"
+	@echo "Creando TSPNoCotaNodos.gif..."
+	@gnuplot <<< "\
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'TSPNoCotaNodos.gif'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'TSP con Difusion de Cota'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de exploracion por Nodo (seg)'; \
+		set key default; \
+		set xr [0.0:50]; \
+		set yr [0:0.001]; \
+		plot 'output/nocota/tspSNodos.dat' using 1:2 title 'TSP S' with linespoints pt 7 ps 1, \
+		     'output/nocota/tsp2PNodos.dat' using 1:2 title 'TSP 2P' with linespoints pt 6 ps 1, \
+			 'output/nocota/tsp3PNodos.dat' using 1:2 title 'TSP 3P' with linespoints pt 5 ps 1"
+
+
 
 style:
 	@echo "Haciendo una copia de los originales..."

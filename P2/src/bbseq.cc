@@ -13,18 +13,15 @@ using namespace std;
 
 unsigned int NCIUDADES;
 
-void guardaEnArchivo(int n, double t)
+void guardarArchivo(string outputFile, int n, double t)
 {
-    ofstream archivo ("output/tspS.dat" , ios_base::app | ios_base::out);
-    if (archivo.is_open())
-    {
+    ofstream archivo (outputFile, ios_base::app | ios_base::out);
+    if (archivo.is_open()){
         archivo << to_string(n) + "\t" + to_string(t) + "\n";
         archivo.close();
     }
     else
-    {
         cout << "No se puede abrir el archivo";
-    }
 }
 
 int main (int argc, char **argv) {
@@ -125,7 +122,12 @@ MPI::Init(argc,argv);
 	EscribeNodo(&solucion);
     cout<< "Tiempo gastado = " << t << endl;
 	cout << "Numero de iteraciones = " << iteraciones << endl << endl;
-	guardaEnArchivo(atoi(argv[1]), t);
+
+    double tNodoExplorado = t/iteraciones;
+    cout << "Tiempo medio por nodo explorado = " << tNodoExplorado << endl;
+
+    guardarArchivo("output/tspS.dat", atoi(argv[1]), t);
+    guardarArchivo("output/tspSNodos.dat", atoi(argv[1]), tNodoExplorado);
 
 	liberarMatriz(tsp0);
 }
