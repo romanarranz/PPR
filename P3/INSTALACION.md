@@ -157,13 +157,13 @@ roman@ubuntu16:~/projects/samples/bin/x86_64/linux/release$ ./nbody -benchmark -
 > Simulation data stored in video memory
 > Single precision floating point simulation
 > 1 Devices used for simulation
-GPU Device 0: "GeForce GTX 660" with compute capability 5.2
+GPU Device 0: "GeForce GTX 660" with compute capability 3.0
 
-> Compute 5.2 CUDA device: [GeForce GTX 660]
+> Compute 3.0 CUDA device: [GeForce GTX 660]
 number of bodies = 256000
-256000 bodies, total time for 10 iterations: 7207.025 ms
-= 90.934 billion interactions per second
-= 1818.670 single-precision GFLOP/s at 20 flops per interaction
+256000 bodies, total time for 10 iterations: 13315.547 ms
+= 49.218 billion interactions per second
+= 984.353 single-precision GFLOP/s at 20 flops per interaction
 ```
 
 ## Documentación de CUDA
