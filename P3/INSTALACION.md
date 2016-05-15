@@ -48,7 +48,7 @@ Como en la web de nvidia sólo dan soporte hasta Ubuntu 15.04 tendremos que inst
 
 Las dependencias son:
 ```bash
-ca-certificates-java default-jre default-jre-headless fonts-dejavu-extra freeglut3 freeglut3-dev java-common libatk-wrapper-java libatk-wrapper-java-jni  libdrm-dev libgl1-mesa-dev libglu1-mesa-dev libgnomevfs2-0 libgnomevfs2-common libice-dev libpthread-stubs0-dev libsctp1 libsm-dev libx11-dev libx11-doc libx11-xcb-dev libxau-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-glx0-dev libxcb-present-dev libxcb-randr0-dev libxcb-render0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb1-dev libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev libxi-dev libxmu-dev libxmu-headers libxshmfence-dev libxt-dev libxxf86vm-dev lksctp-tools mesa-common-dev x11proto-core-dev x11proto-damage-dev x11proto-dri2-dev x11proto-fixes-dev x11proto-gl-dev x11proto-input-dev x11proto-kb-dev x11proto-xext-dev x11proto-xf86vidmode-dev xorg-sgml-doctools xtrans-dev libgles2-mesa-dev nvidia-modprobe build-essential
+$ sudo apt-get install ca-certificates-java default-jre default-jre-headless fonts-dejavu-extra freeglut3 freeglut3-dev java-common libatk-wrapper-java libatk-wrapper-java-jni  libdrm-dev libgl1-mesa-dev libglu1-mesa-dev libgnomevfs2-0 libgnomevfs2-common libice-dev libpthread-stubs0-dev libsctp1 libsm-dev libx11-dev libx11-doc libx11-xcb-dev libxau-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-glx0-dev libxcb-present-dev libxcb-randr0-dev libxcb-render0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb1-dev libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev libxi-dev libxmu-dev libxmu-headers libxshmfence-dev libxt-dev libxxf86vm-dev lksctp-tools mesa-common-dev x11proto-core-dev x11proto-damage-dev x11proto-dri2-dev x11proto-fixes-dev x11proto-gl-dev x11proto-input-dev x11proto-kb-dev x11proto-xext-dev x11proto-xf86vidmode-dev xorg-sgml-doctools xtrans-dev libgles2-mesa-dev nvidia-modprobe build-essential
 ```
 
 ## Instalación de CUDA
@@ -105,6 +105,65 @@ $ sudo emacs -nw /usr/local/cuda/include/host_config.h
 
 # comentar linea: 115 solo el error
 //#error -- unsupported GNU version! gcc versions later than 4.9 are not supported!
+```
+
+## Compilando los ejemplos de CUDA
+
+Vamos a copiar el directorio de archivos de prueba de cuda.
+
+```bash
+$ rsync -av /usr/local/cuda/samples $HOME/project
+```
+
+El principal problema es que los `Makefile` están hechos para las versiones compatibles con cuda por lo tanto hay que trucarlos un poco.
+
+```bash
+roman@ubuntu16:~/projects/samples/common$ emacs -nw findgllib.mk
+# linea 61: cambiamos nvidia-352 por nvidia-361
+    UBUNTU_PKG_NAME = "nvidia-361"
+```
+
+Otro problema común de Ubuntu es que hay que especificar el GLPATH
+```bash
+# en el mismo fichero de antes
+GLPATH=/usr/lib make
+```
+
+Hay que modificar previamente el `Makefile` para evitar que compile uno de los ejemplos que genera error. (1 de 141)
+```bash
+roman@ubuntu16:~/projects/samples/$ emacs -nw Makefile
+
+# duplicar liena 39 y comentar la copia, luego cambiar una de las lineas a
+#PROJECTS ?= $(shell find 0_Simple 1_Utilities 2_Graphics 3_Imaging 4_Finance 5_Simulations 6_Advanced 7_CUDALibraries -name Makefile)
+PROJECTS ?= $(shell find 0_Simple 1_Utilities 2_Graphics 4_Finance 5_Simulations 6_Advanced 7_CUDALibraries -name Makefile)
+
+# comentar linea 46
+# FILTER_OUT += 3_Imagening/cudaDecodeGL/Makefile
+```
+
+Ahora probamos a ejecutar el make para ver los resultados
+```bash
+$ cd $HOME/project
+$ make
+```
+
+## Ejecución de prueba
+
+Ejecución de nbody benchmark corriendo:
+```bash
+roman@ubuntu16:~/projects/samples/bin/x86_64/linux/release$ ./nbody -benchmark -numbodies=256000
+
+> Windowed mode
+> Simulation data stored in video memory
+> Single precision floating point simulation
+> 1 Devices used for simulation
+GPU Device 0: "GeForce GTX 660" with compute capability 5.2
+
+> Compute 5.2 CUDA device: [GeForce GTX 660]
+number of bodies = 256000
+256000 bodies, total time for 10 iterations: 7207.025 ms
+= 90.934 billion interactions per second
+= 1818.670 single-precision GFLOP/s at 20 flops per interaction
 ```
 
 ## Documentación de CUDA
