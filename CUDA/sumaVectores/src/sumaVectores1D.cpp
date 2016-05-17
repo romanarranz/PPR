@@ -28,4 +28,9 @@ int main(){
 
     cout << "CPU: Mosrando resultados..." << endl;
     cout << "h_C[0] = " << h_C[0] << " ... h_C[N-1] = " << h_C[N-1] << endl;
+
+    // Liberando memoria de CPU
+    free(h_A);
+    free(h_B);
+    free(h_C);
 }
