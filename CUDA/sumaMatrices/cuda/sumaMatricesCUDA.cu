@@ -22,27 +22,16 @@ __global__ void matAdd(float *A, float *B, float *C, int N){
         C[tid] = A[tid] + B[tid];
 }
 
-// http://stackoverflow.com/questions/1398307/how-can-i-allocate-memory-and-return-it-via-a-pointer-parameter-to-the-calling
-void initMatrixes(float * *h_A, float * *h_B, float * *h_C, int N){
-    unsigned int sizeMatrix = N * N;
-    unsigned int memSize = sizeMatrix * sizeof(float);
-    *h_A = (float *) malloc(memSize);
-    *h_B = (float *) malloc(memSize);
-    *h_C = (float *) malloc(memSize);
-
+void initMatrixes(float *h_A, float *h_B, float *h_C, int N){
     cout << "CPU: Inicializando los vectores..." << endl;
     for(int i = 0; i<N; i++){
         int row = N*i;
         for(int j = 0; j<N; j++){
-            *h_A[row+j] = i+1;
-            *h_B[row+j] = (i+1)*10;
-            *h_C[row+j] = 0;
+            h_A[row+j] = row+j+1;
+            h_B[row+j] =  row+j+2;
+            h_C[row+j] = 0;
         }
     }
-    int lastIndex = (N * N)-1;
-    cout << "h_A[0] = " << h_A[0] << " ... h_A[N*N-1] = " << h_A[lastIndex] << endl;
-    cout << "h_B[0] = " << h_B[0] << " ... h_B[N*N-1] = " << h_B[lastIndex] << endl;
-    cout << "h_C[0] = " << h_C[0] << " ... h_C[N*N-1] = " << h_C[lastIndex] << endl;
 }
 
 void matAddGPU(float *h_A, float *h_B, float *h_C, int N, int numBloques, int numThreadsBloque){
@@ -58,22 +47,16 @@ void matAddGPU(float *h_A, float *h_B, float *h_C, int N, int numBloques, int nu
     CUDA_CHECK(cudaMalloc((void **)&d_B, memSize));
     CUDA_CHECK(cudaMalloc((void **)&d_C, memSize));
 
-    if(h_A == NULL){
-      cout << "LA HEMOS LIAO" << endl;
-    }
     cout << "CPU: Copiando las matrices de la CPU RAM a la GPU DRAM..." << endl;
-    cudaError_t error;
-    error = cudaMemcpy(d_A, h_A, N*N*sizeof(float), cudaMemcpyHostToDevice);
-    if (error != cudaSuccess){
-      cout << "cudaMemcpy (d_A,h_A) returned error '"<< cudaGetErrorString(error) << "' (code "<< error << "), line("<< __LINE__ << ")" << endl;
-      exit(EXIT_FAILURE);
-    }
+    CUDA_CHECK(cudaMemcpy(d_A, h_A, memSize, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(d_B, h_B, memSize, cudaMemcpyHostToDevice));
 
     // Llamada a CUDA Kernel con N datos, usando 256 threads y bloque 1D, recordamos que los wraps de hebras se cogen de 32 hebras en 32
     // callback <<blocks_per_grid, thread_per_block>> (params);
     cout << "GPU: Calculando..." << endl;
-    matAdd<<<numBloques, numThreadsBloque>>> (d_A, d_B, d_C, N);
+    dim3 threadsPerBlock(numThreadsBloque,numThreadsBloque);
+    dim3 numBlocks (numBloques, numThreadsBloque);
+    matAdd<<<numBlocks, threadsPerBlock>>> (d_A, d_B, d_C, N);
 
     cout << "CPU: Copiando los resultados de la GPU DRAM a la CPU RAM..." << endl;
     CUDA_CHECK(cudaMemcpy(h_C, d_C, memSize, cudaMemcpyDeviceToHost));

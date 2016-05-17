@@ -186,7 +186,7 @@ sumaMatrices: $(OBJ)/sumaMatrices.o $(OBJ)/sumaMatricesCUDA.o
 	@echo "Creando $@..."
 	@$(CXX) -o $@ $+ $(LIBRARIES)
 	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
-	@cp $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 # ************ Objetos ************
 

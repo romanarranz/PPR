@@ -34,24 +34,38 @@ int main(){
 
     // Use a larger block size for Fermi and above
     int blockS = (deviceProp.major < 2) ? 16 : 32; // si deviceProp.major < 2 => blockSize = 16;  else blockSize = 32;
-    int N = 5 * 2 * blockS;
+    int N = 32 * blockS;
 
     dim3 blockSize(blockS, blockS);
     int numBloques = ceil( (float) N / blockSize.x);
     int numThreadsBloque = ceil ( (float) N / blockSize.y);
     dim3 numBlocks (numBloques, numThreadsBloque);
+    cout << "El blockSize es de: " << blockS << endl;
+    cout << "El numBloques es de: " << numBloques << endl;
+    cout << "El numThreadsBloque es de: " << numThreadsBloque << endl;
 
     // CPU variables
     float * h_A = NULL;
     float * h_B = NULL;
     float * h_C = NULL;
-    initMatrixes(&h_A, &h_B, &h_C, N);
+    unsigned int sizeMatrix = N * N;
+    unsigned int memSize = sizeMatrix * sizeof(float);
+    h_A = (float *) malloc(memSize);
+    h_B = (float *) malloc(memSize);
+    h_C = (float *) malloc(memSize);
+
+    initMatrixes(h_A, h_B, h_C, N);
+
+    int lastIndex = sizeMatrix-1;
+    cout << "h_A[0] = " << h_A[0] << " ... h_A["<< lastIndex <<"] = " << h_A[lastIndex] << endl;
+    cout << "h_B[0] = " << h_B[0] << " ... h_B["<< lastIndex <<"] = " << h_B[lastIndex] << endl;
+    cout << "h_C[0] = " << h_C[0] << " ... h_C["<< lastIndex <<"] = " << h_C[lastIndex] << endl;
 
     // Calc
     matAddGPU(h_A, h_B, h_C, N, numBloques, numThreadsBloque);
 
-    cout << "CPU: Mosrando resultados..." << endl;
-    cout << "h_C[0] = " << h_C[0] << " ... h_C[N-1] = " << h_C[N-1] << endl;
+    cout << "CPU: Mostrando resultados..." << endl;
+    cout << "h_C[0] = " << h_C[0] << " ... h_C["<< lastIndex <<"] = " << h_C[lastIndex] << endl;
 
     // Liberando memoria de CPU
     free(h_A);
