@@ -42,7 +42,7 @@ int main(int argc, char **argv){
     }
 
     // Use a larger block size for Fermi and above
-    int blockS = (deviceProp.major < 2) ? 16 : 32; // si deviceProp.major < 2 => blockSize = 16;  else blockSize = 32;
+    short blockS = (deviceProp.major < 2) ? 16 : 32; // si deviceProp.major < 2 => blockSize = 16;  else blockSize = 32;
 
     // CPU variables
     Graph G;
@@ -54,6 +54,8 @@ int main(int argc, char **argv){
     const unsigned int memSize = sizeMatrix * sizeof(int);
     int * h_M = NULL;
     h_M = (int *) malloc(memSize);
+
+    if(N < blockS) blockS = N;
 
     dim3 blockSize(blockS, blockS);
     int numBloques = ceil( (float) N / blockSize.x);

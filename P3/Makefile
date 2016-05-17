@@ -178,7 +178,7 @@ LIBRARIES += -L$(CUDA_PATH)/lib$(LIBSIZE) -lcudart
 
 #####################################################################################################
 
-all: floydSecuencial floydCuda
+all: floydSecuencial floydCuda creaEjemplo
 
 # ************ Ejecutables ************
 

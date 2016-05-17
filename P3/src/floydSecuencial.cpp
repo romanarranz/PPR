@@ -15,8 +15,8 @@ int main (int argc, char **argv){
 
 	Graph G;
 	G.lee(argv[1]);		// Read the Graph
-	//cout << "EL Grafo de entrada es:"<<endl;
-	//G.imprime();
+	cout << "EL Grafo de entrada es:"<<endl;
+	G.imprime();
 
 	int nverts = G.vertices;
 	double t1=clock();
@@ -36,6 +36,6 @@ int main (int argc, char **argv){
 	double t2 = clock();
   	t2 = (t2-t1) / CLOCKS_PER_SEC;
 	cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
-  	//G.imprime();
+  	G.imprime();
   	cout<< "Tiempo gastado= " << t2 << endl << endl;
 }

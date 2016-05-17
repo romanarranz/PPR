@@ -15,14 +15,28 @@ using std::endl;
         cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
 
 __global__ void floyd1DKernel(int * M, const int nverts, const int k){
-    int tid = blockIdx.y * blockDim.y + threadIdx.y; // indice columnas
+    short j = blockIdx.x * blockDim.x + threadIdx.x;    // indice filas
+    short i = blockIdx.y;                               // indice columnas
+    short tid = (i * nverts) + j;
+
+    if(i!=j && i!=k && j!=k){
+        if (i!=j && i!=k && j!=k) {
+            short jk = (j*nverts) + k;
+            short ki = (k*nverts) + i;
+            short ij = (j*nverts) + i;
+            int aux = M[jk]+M[ki];
+
+            int vikj = min(aux, M[ij]);
+            M[tid] = vikj;
+        }
+    }
 }
 
 // Kernel to update the Matrix at k-th iteration
 __global__ void floyd2DKernel(int * M, const int nverts, const int k){
     short j = blockIdx.x * blockDim.x + threadIdx.x; // indice filas
     short i = blockIdx.y * blockDim.y + threadIdx.y; // indice columnas
-    short tid = (i * N) + j;
+    short tid = (i * nverts) + j;
 
     if(i < nverts && j < nverts){
         if (i!=j && i!=k && j!=k) {
@@ -42,7 +56,7 @@ void floyd1DGPU(int *h_M, Graph g, int N, int numBloques, int numThreadsBloque){
     unsigned int memSize = sizeMatrix * sizeof(int);
 
     // GPU variables
-    float * d_M = NULL;
+    int * d_M = NULL;
 
     CUDA_CHECK(cudaMalloc((void **)&d_M, memSize));
 
@@ -55,7 +69,7 @@ void floyd1DGPU(int *h_M, Graph g, int N, int numBloques, int numThreadsBloque){
     }
 
     cout << "CPU: Copiando los resultados de la GPU DRAM a la CPU RAM..." << endl;
-    CUDA_CHECK(cudaMemcpy(h_C, d_C, memSize, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_M, d_M, memSize, cudaMemcpyDeviceToHost));
 }
 
 void floyd2DGPU(int *h_M, Graph g, int N, int numBloques, int numThreadsBloque){
@@ -71,12 +85,12 @@ void floyd2DGPU(int *h_M, Graph g, int N, int numBloques, int numThreadsBloque){
     CUDA_CHECK(cudaMemcpy(d_M, h_M, memSize, cudaMemcpyHostToDevice));
 
     cout << "GPU: Calculando..." << endl;
-    for(int k = 0; k < niters; k++){
+    for(int k = 0; k < N; k++){
         dim3 threadsPerBlock(numThreadsBloque,numThreadsBloque);
         dim3 numBlocks (numBloques, numThreadsBloque);
         floyd2DKernel<<< numBlocks, threadsPerBlock >>> (d_M, N, k);
     }
 
     cout << "CPU: Copiando los resultados de la GPU DRAM a la CPU RAM..." << endl;
-    CUDA_CHECK(cudaMemcpy(h_C, d_C, memSize, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_M, d_M, memSize, cudaMemcpyDeviceToHost));
 }
