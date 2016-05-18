@@ -178,7 +178,7 @@ LIBRARIES += -L$(CUDA_PATH)/lib$(LIBSIZE) -lcudart
 
 #####################################################################################################
 
-all: floydSecuencial floydCuda creaEjemplo
+all: floydSecuencial floydCuda1D floydCuda2D creaEjemplo
 
 # ************ Ejecutables ************
 
@@ -188,7 +188,13 @@ creaEjemplo: $(OBJ)/creaEjemplo.o
 	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
-floydCuda: $(OBJ)/floydParalelo.o $(OBJ)/floydCUDA.o $(OBJ)/Graph.o
+floydCuda1D: $(OBJ)/floydParalelo1D.o $(OBJ)/floydCUDA.o $(OBJ)/Graph.o
+	@echo "Creando $@..."
+	@$(CXX) -o $@ $+ $(LIBRARIES)
+	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
+
+floydCuda2D: $(OBJ)/floydParalelo2D.o $(OBJ)/floydCUDA.o $(OBJ)/Graph.o
 	@echo "Creando $@..."
 	@$(CXX) -o $@ $+ $(LIBRARIES)
 	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
@@ -214,7 +220,11 @@ $(OBJ)/floydSecuencial.o: $(SRC)/floydSecuencial.cpp
 	@echo "Creando $@..."
 	@$(CXX) $(CCFLAGS) $< -o $@
 
-$(OBJ)/floydParalelo.o: $(SRC)/floydParalelo.cpp
+$(OBJ)/floydParalelo1D.o: $(SRC)/floydParalelo1D.cpp
+	@echo "Creando $@..."
+	@$(NVCC) -I$(INC) -I$(CUDA_INCLUDE) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(OBJ)/floydParalelo2D.o: $(SRC)/floydParalelo2D.cpp
 	@echo "Creando $@..."
 	@$(NVCC) -I$(INC) -I$(CUDA_INCLUDE) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
