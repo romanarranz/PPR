@@ -18,11 +18,7 @@ class Graph //Adjacency List class
 	   	int arista(const int ptA,const int ptB);
     	void imprime();
 		void lee(char *filename);
-<<<<<<< HEAD
 	   	int * getMatrix();
-=======
-	   	int * getMatrix(){return A;}
->>>>>>> master
 };
 
 //**************************************************************************

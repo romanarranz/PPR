@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef FLOYD_H
 #define FLOYD_H
 
@@ -10,9 +9,3 @@ void floyd1DSharedMGPU(int *M, int blockSize, int N, int numBloques, int numThre
 void floyd2DGPU(int *M, int N, dim3 numBlocks, dim3 threadsPerBlock);
 
 #endif
-=======
-extern "C"{
-    void floyd1DGPU(int *M, int N, int numBloques, int numThreadsBloque);
-    void floyd2DGPU(int *M, int N, int numBloques, int numThreadsBloque);
-}
->>>>>>> master
