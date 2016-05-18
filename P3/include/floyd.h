@@ -1,4 +1,11 @@
-extern "C"{
-    void floyd1DGPU(int *M, Graph g, int N, int numBloques, int numThreadsBloque);
-    void floyd2DGPU(int *M, Graph g, int N, int numBloques, int numThreadsBloque);
-}
+#ifndef FLOYD_H
+#define FLOYD_H
+
+#include "cuda_runtime.h"
+
+void floyd1DGPU(int *M, int N, int numBloques, int numThreadsBloque);
+void floyd1DSharedMGPU(int *M, int blockSize, int N, int numBloques, int numThreadsBloque);
+
+void floyd2DGPU(int *M, int N, dim3 numBlocks, dim3 threadsPerBlock);
+
+#endif

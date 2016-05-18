@@ -76,5 +76,9 @@ void Graph::lee(char *filename)
         i = atoi(buf);
 	    j = atoi(vertname2);
         A[i*vertices+j]=weight;
-	 }
+    }
+}
+
+int * Graph::getMatrix(){
+    return A;
 }
