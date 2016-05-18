@@ -1,14 +1,23 @@
 #include <iostream>
+<<<<<<< HEAD
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::min;
 
+=======
+>>>>>>> master
 #include <stdlib.h>
 #include <math.h>
 #include <fstream>
 #include <string.h>
 #include <time.h>
+<<<<<<< HEAD
+=======
+using std::cout;
+using std::cerr;
+using std::endl;
+>>>>>>> master
 
 #include "cuda_runtime.h"
 
@@ -21,12 +30,15 @@ using std::min;
         cudaError_t err = cudaGetLastError(); \
         cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
 
+<<<<<<< HEAD
 void copiaGrafo(int * h_M, Graph g, int N){
     for(int i = 0; i<N; i++)
         for(int j = 0; j<N; j++)
             h_M[(i*N)+j] = g.arista(i,j);
 }
 
+=======
+>>>>>>> master
 int main(int argc, char **argv){
 
     if (argc != 2) {
@@ -49,8 +61,12 @@ int main(int argc, char **argv){
         cout << "GPU Device " << devID << ": \"" << deviceProp.name << "\" with compute capability " << deviceProp.major << "." << deviceProp.minor << endl << endl;
     }
 
+<<<<<<< HEAD
     // bloque de 256 * 1 = 256 threads en el bloque
     short blockS = 256;
+=======
+    short blockS = 6;
+>>>>>>> master
 
     // CPU variables
     Graph G;
@@ -59,6 +75,7 @@ int main(int argc, char **argv){
 
     const unsigned int N = G.vertices;
     const unsigned int sizeMatrix = N * N;
+<<<<<<< HEAD
     const unsigned int memSize = sizeMatrix * sizeof(int);
     int * h_M = (int *) malloc(memSize);
     copiaGrafo(h_M, G, N);
@@ -68,6 +85,12 @@ int main(int argc, char **argv){
 
     dim3 blockSize(blockS, 1);  // el bloque de 256 * 1 en 1D
     int numBloques = ceil((float) sizeMatrix / blockSize.x);
+=======
+    int * h_M = G.getMatrix();
+
+    dim3 blockSize(blockS, 1);
+    int numBloques = sizeMatrix / blockSize.x;
+>>>>>>> master
     int numThreadsBloque = blockSize.x;
 
     cout << "El blockSize es de: " << blockS << endl;
@@ -81,6 +104,7 @@ int main(int argc, char **argv){
     Tgpu = (Tgpu-t1)/CLOCKS_PER_SEC;
 
     cout << "CPU: Mostrando resultados..." << endl;
+<<<<<<< HEAD
     // cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
     // G.imprime();
     cout << "Tiempo gastado GPU = " << Tgpu << endl << endl;
@@ -110,6 +134,12 @@ int main(int argc, char **argv){
     if(error) cout <<"With ERRORS" << endl;
     else cout << "ALL OK" << endl;
 
+=======
+    cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
+    G.imprime();
+    cout << "Tiempo gastado GPU = " << Tgpu << endl << endl;
+
+>>>>>>> master
     // Liberando memoria de CPU
     free(h_M);
 }
