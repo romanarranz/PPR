@@ -18,7 +18,9 @@ __global__ void floyd1DKernel(int * M, const int nverts, const int k){
 
     if(i < nverts && j < nverts){
         if (i!=j && i!=k && j!=k) {
-            M[ii] = min(M[i * nverts + k] + M[k * nverts + j], M[ii]);
+            int ik = (i*nverts) + k;
+            int kj = (k*nverts) + j;
+            M[ii] = min(M[ik] + M[kj], M[ii]);
         }
     }
 }
