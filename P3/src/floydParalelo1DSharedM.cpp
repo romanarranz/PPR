@@ -54,7 +54,7 @@ int main(int argc, char **argv){
     // CPU variables
     Graph G;
     G.lee(argv[1]);
-    // G.imprime();
+    G.imprime();
 
     const unsigned int N = G.vertices;
     const unsigned int sizeMatrix = N * N;
@@ -62,8 +62,11 @@ int main(int argc, char **argv){
     int * h_M = (int *) malloc(memSize);
     copiaGrafo(h_M, G, N);
 
+    // comprobar si es divisible el tamaño de la matriz entre el tamaño del bloque
+    if( N % blockS != 0) blockS = 16;
+
     dim3 blockSize(blockS, 1);  // el bloque de 256 * 1 en 1D
-    int numBloques = sizeMatrix / blockSize.x;
+    int numBloques = ceil((float) sizeMatrix / blockSize.x);
     int numThreadsBloque = blockSize.x;
 
     cout << "El blockSize es de: " << blockS << endl;
@@ -72,31 +75,58 @@ int main(int argc, char **argv){
 
     // Calc
     double t1 = clock();
-    floyd1DSharedMGPU(h_M, N, blockSize.x, numBloques, numThreadsBloque);
+    floyd1DSharedMGPU(h_M, N, numBloques, numThreadsBloque);
     double Tgpu = clock();
     Tgpu = (Tgpu-t1)/CLOCKS_PER_SEC;
 
     cout << "CPU: Mostrando resultados..." << endl;
-    cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
-    G.imprime();
+    // cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
+    // G.imprime();
     cout << "Tiempo gastado GPU = " << Tgpu << endl << endl;
 
     // Comprobar si los resultados de CPU y GPU coinciden
     cout << "Comprobando resultados..." << endl;
-    int aux, vikj;
-    for(int k = 0; k < N; k++)
-        for(int i = 0; i < N; i++)
-            for(int j = 0; j < N; j++)
-                if (i!=j && i!=k && j!=k){
-                    aux = G.arista(i,k) + G.arista(k,j);
-                    vikj = min(aux, G.arista(i,j));
-                    G.inserta_arista(i, j, vikj);
+    for(int k=0;k<N;k++){
+        for(int i=0;i<N;i++){
+            for(int j=0;j<N;j++){
+                if (i!=j && i!=k && j!=k) {
+                    int vikj=min(G.arista(i,k)+G.arista(k,j),G.arista(i,j));
+                    G.inserta_arista(i,j,vikj);
                 }
+            }
+        }
+    }
 
-    for(int i = 0; i < N; i++)
-        for(int j = 0; j < N; j++)
-            if ( abs(h_M[i * N + j] - G.arista(i,j)) > 0 )
-                cout <<"Error ("<<i<<","<<j<<")   " << h_M[i * N + j] << "..." << G.arista(i,j) << endl;
+    bool error = false;
+    for(int i = 0; i < N; i++){
+        for(int j = 0; j < N; j++){
+            if ( abs(h_M[i * N + j] - G.arista(i,j)) > 0 ){
+                // cout <<"Error ("<<i<<","<<j<<")   " << h_M[i * N + j] << "..." << G.arista(i,j) << endl;
+                error = true;
+            }
+        }
+    }
+    if(error){
+        int i,j,vij;
+        for(i = 0; i < N; i++){
+            cout << "A[" << i << ",*]= ";
+
+            for(j=0;j<N;j++){
+                if (h_M[i*N+j]==INF)
+                    cout << "INF";
+                else
+                    cout << h_M[i*N+j];
+
+                if (j<N-1)
+                    cout << ",";
+                else
+                    cout << endl;
+            }
+        }
+
+        cout <<"With ERRORS" << endl;
+    }
+    else cout << "ALL OK" << endl;
 
     // Liberando memoria de CPU
     free(h_M);

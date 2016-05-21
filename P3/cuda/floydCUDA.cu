@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdio.h>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -17,9 +18,11 @@ __global__ void floyd1DKernel(int * M, const int nverts, const int k){
     int j = ii - i * nverts;
 
     if(i < nverts && j < nverts){
+        int kj = (k*nverts) + j;
+        printf("TID = %u \n\tI = %u => \tM[%u] = %u \n \tK = %u => \tM[%u] = %u  \n", ii, i, ii, M[ii], k, kj, M[kj]);
         if (i!=j && i!=k && j!=k) {
             int ik = (i*nverts) + k;
-            int kj = (k*nverts) + j;
+            // int kj = (k*nverts) + j;
             M[ii] = min(M[ik] + M[kj], M[ii]);
         }
     }
