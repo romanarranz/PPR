@@ -19,7 +19,7 @@ __global__ void floyd1DKernel(int * M, const int nverts, const int k){
 
     if(i < nverts && j < nverts){
         int kj = (k*nverts) + j;
-        printf("TID = %u \n\tI = %u => \tM[%u] = %u \n \tK = %u => \tM[%u] = %u  \n", ii, i, ii, M[ii], k, kj, M[kj]);
+        // printf("TID = %u \n\tI = %u => \tM[%u] = %u \n \tK = %u => \tM[%u] = %u  \n", ii, i, ii, M[ii], k, kj, M[kj]);
         if (i!=j && i!=k && j!=k) {
             int ik = (i*nverts) + k;
             // int kj = (k*nverts) + j;

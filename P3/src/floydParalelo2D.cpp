@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string.h>
 #include <time.h>
+#include <sstream>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -19,6 +20,20 @@ using std::min;
     if((call) != cudaSuccess) { \
         cudaError_t err = cudaGetLastError(); \
         cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
+
+void guardarArchivo(std::string outputFile, int n, double t){
+    std::ofstream archivo (outputFile.c_str(), std::ios_base::app | std::ios_base::out);
+    if (archivo.is_open()){
+        std::stringstream ns, ts;
+        ns << n;
+        ts << t;
+        std::string input =  ns.str() + "\t" + ts.str() + "\n";
+        archivo << input;
+        archivo.close();
+    }
+    else
+        cout << "No se puede abrir el archivo";
+}
 
 void copiaGrafo(int * h_M, Graph g, int N){
     for(int i = 0; i<N; i++)
@@ -104,6 +119,10 @@ int main(int argc, char **argv){
     }
     if(error) cout <<"With ERRORS" << endl;
     else cout << "ALL OK" << endl;
+
+    // Guardar en el archivo los resultados
+    std::string archivo = "output/floyd2D.dat";
+    guardarArchivo(archivo, N, Tgpu);
 
     // Liberando memoria de CPU
     free(h_M);

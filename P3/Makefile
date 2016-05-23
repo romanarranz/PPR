@@ -252,3 +252,79 @@ $(OBJ)/floydSharedMCUDA.o: $(CU)/floydSharedMCUDA.cu
 clean:
 	@echo "Borrando ejecutables, objeto y cabeceras..."
 	@rm $(BIN)/* $(OBJ)/* $(SRC)/*~ $(INC)/*~ ./*~
+
+
+# ************ Compresion ************
+zip:
+	@echo "Creando "$(CURRENT_DIR)".zip..."
+	zip $(CURRENT_DIR) -r src bin enunciados include input lib obj output src Makefile
+
+tar:
+	@echo "Creando "$(CURRENT_DIR)".tar.gz..."
+	tar -cvzf $(CURRENT_DIR).tar.gz bin enunciados include input lib obj output src Makefile
+
+# ************ Grafica ************
+plot: SHELL:=/bin/bash
+plot:
+	@echo "Creando floydCUDA.gif..."
+	@gnuplot <<< "\
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'floydCUDA.gif'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Floyd Seq vs CUDA'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Tiempo de computo (seg)'; \
+		set key default; \
+		set xr [0.0:1024]; \
+		set yr [0:16]; \
+		plot 'output/floydS.dat' using 1:2 title 'Floyd S' with linespoints pt 7 ps 1, \
+		     'output/floyd1D.dat' using 1:2 title 'Floyd1D CUDA' with linespoints pt 6 ps 1, \
+			 'output/floyd2D.dat' using 1:2 title 'Floyd2D CUDA' with linespoints pt 5 ps 1"
+	@echo "Creando gananciaFloyd.gif..."
+	@gnuplot <<< "\
+		set terminal gif size 800,600 font 'Verdana,10'; \
+		set output 'gananciaFloyd.gif'; \
+		set autoscale; \
+		unset log; \
+		unset label; \
+		set border linewidth 2; \
+		set xtic auto; \
+		set ytic auto; \
+		set title 'Ganancia TSP con Difusion de Cota'; \
+		set xlabel 'Tamaño del problema'; \
+		set ylabel 'Ganancia (S)'; \
+		set key default; \
+		set xr [0.0:1024]; \
+		set yr [0:75]; \
+		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
+		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1, \
+			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D' with linespoints pt 5 ps 1,"
+
+style:
+	@echo "Haciendo una copia de los originales..."
+	@if [ ! -d "src/old" ]; then mkdir src/old; fi
+	@-cp src/*.cpp src/old||:
+	@echo "Haciendo legible el codigo..."
+	@astyle --style=allman --indent=spaces=4 --pad-header --delete-empty-lines --align-pointer=name --align-reference=middle \
+	--break-closing-brackets --add-brackets --convert-tabs --close-templates --mode=c --indent-preproc-block --indent-preproc-cond \
+	--indent-preproc-define --indent-col1-comments src/*.cpp
+
+# con ||: make no nos muestra el error
+# con @- make ignora los errores y no muestra la salida de la ejecucion de esta sentencia
+debug:
+	@echo "Ejecutando valgrind..."
+	@-mpirun -np 4 valgrind --tool=memcheck --leak-check=full -v bin/tspParalelo 10 input/tsp10.1 &> output/debug_full.txt ||:
+	@echo "Filtrando resultados por .cpp..."
+	@grep ".cpp" output/debug_full.txt > output/debug.txt
+	@echo "Ordenando y borrando lineas repetidas..."
+	@sort -u output/debug.txt -o output/debug.txt
+	@echo "Salida: output/debug.txt, output/debug_full.txt"
+
+license:
+	@echo "Generando licencia..."
+	@license install mit -y 2016 -n "ROMÁN ARRANZ GUERRERO"
