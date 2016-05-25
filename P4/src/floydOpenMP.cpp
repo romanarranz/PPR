@@ -1,25 +1,26 @@
-#ifdef _OPENMP
-	#include <omp.h>
-#else
-	#define omp_set_num_threads(4);
-#endif
+#include <omp.h>
 #include <stdio.h>
 #include <algorithm>    // std::min
 using std::min;
 #include "floyd.h"
 
-double floyd1DOpenMP(int * M, const int N){
+double floyd1DOpenMP(int * M, const int N, const int P){
 
     int k, i, j, vikj;
-    double t1 = omp_get_wtime();
+    int chunk = N/P;
+    // lo optimo seria poner omp_get_num_procs() para aprovechar los recursos hw reales
+    omp_set_num_threads(P);
 
+    printf("Hay un total de %u hebras, cada se encarga de %u filas consecutivas\n", P, chunk );
+    double t1 = omp_get_wtime();
 	for(k = 0; k<N; k++){
         // poner shared k lo hacemos para que todas las hebras conozcan la fila k, equivalente al mpi_broadcast k
-        #pragma omp parallel shared(M,k) private(i,j,vikj) default(none)
+        #pragma omp parallel shared(M,k,chunk) private(i,j,vikj)
         {
-            #pragma for schedule(static)
+            #pragma omp for schedule(static, chunk)
     		for(i = 0; i<N; i++){
                 int ik = i*N + k;
+                //printf("k:%u\n\tT%u -> fila %u\n", k, omp_get_thread_num(),i );
                 for(j = 0; j<N; j++){
                     if(i!=j && i!=k && j!=k){
                         int kj = k*N + j;

@@ -173,7 +173,7 @@ plot:
 		set ylabel 'Ganancia (S)'; \
 		set key default; \
 		set xr [0.0:1024]; \
-		set yr [0:2]; \
+		set yr [0:4]; \
 		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
 		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1"
 

@@ -42,6 +42,12 @@ int main(int argc, char **argv){
 	G.lee(argv[1]);		// Read the Graph
 
     const int N = G.vertices;
+    const int P = 4;
+    if(N % P != 0){
+        cerr << "El tamaño del problema no es divisible entre el numero de hebras" << endl;
+        return(-1);
+    }
+
     const unsigned int sizeMatrix = N * N;
     const unsigned int memSize = sizeMatrix * sizeof(int);
     int * M = (int *) malloc(memSize);
@@ -51,7 +57,7 @@ int main(int argc, char **argv){
     cout << "Hay " << sizeMatrix << " elementos y se han reservado " << memSize << "B" << endl;
 
     // Calc
-    double tFloyd = floyd1DOpenMP(M, N);
+    double tFloyd = floyd1DOpenMP(M, N, P);
 
     cout << "Mostrando resultados..." << endl;
     cout << "Tiempo gastado = " << tFloyd << endl << endl;
