@@ -1,10 +1,25 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
+#include <sstream>
 #include <time.h>
 #include "Graph.h"
 
 using namespace std;
+
+void guardarArchivo(std::string outputFile, int n, double t){
+    std::ofstream archivo (outputFile.c_str(), std::ios_base::app | std::ios_base::out);
+    if (archivo.is_open()){
+        std::stringstream ns, ts;
+        ns << n;
+        ts << t;
+        std::string input =  ns.str() + "\t" + ts.str() + "\n";
+        archivo << input;
+        archivo.close();
+    }
+    else
+        cout << "No se puede abrir el archivo";
+}
 
 int main (int argc, char **argv){
 
@@ -35,7 +50,10 @@ int main (int argc, char **argv){
 
 	double t2 = clock();
   	t2 = (t2-t1) / CLOCKS_PER_SEC;
-	cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
-  	G.imprime();
+	// cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl << endl;
+  	// G.imprime();
   	cout<< "Tiempo gastado= " << t2 << endl << endl;
+
+	string archivo = "output/floydS.dat";
+	guardarArchivo(archivo, nverts, t2);
 }

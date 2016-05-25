@@ -11,21 +11,26 @@ using std::min;
 double floyd1DOpenMP(int * M, const int N){
 
     int k, i, j, vikj;
-    int chunk = 4;
-
     double t1 = omp_get_wtime();
-    #pragma omp parallel shared(M) private(i,j,k, vikj) default(none)
+
 	for(k = 0; k<N; k++){
-        printf("k: %u\n", k);
-        #pragma for schedule(static, chunk)
-		for(i = 0; i<N; i++){
-			for(j = 0; j<N; j++){
-                vikj = min(M[i*N + k] + M[k*N + j], M[i*N + j]);
-                M[i*N + j] = vikj;
-                printf("\tT%u -> M[%u,%u] = %u\n", omp_get_thread_num(), i, j, vikj);
+        // poner shared k lo hacemos para que todas las hebras conozcan la fila k, equivalente al mpi_broadcast k
+        #pragma omp parallel shared(M,k) private(i,j,vikj) default(none)
+        {
+            #pragma for schedule(static)
+    		for(i = 0; i<N; i++){
+                int ik = i*N + k;
+                for(j = 0; j<N; j++){
+                    if(i!=j && i!=k && j!=k){
+                        int kj = k*N + j;
+                        int ij = i*N + j;
+                        vikj = min(M[ik] + M[kj], M[ij]);
+                        M[ij] = vikj;
+                    }
+                }
             }
-        }
-	}
+    	}
+    }
     double t2 = omp_get_wtime();
 
     return (t2-t1);

@@ -140,25 +140,24 @@ tar:
 # ************ Grafica ************
 plot: SHELL:=/bin/bash
 plot:
-	@echo "Creando floydCUDA.gif..."
+	@echo "Creando floydOpenMP.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
-		set output 'floydCUDA.gif'; \
+		set output 'floydOpenMP.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Floyd Seq vs CUDA'; \
+		set title 'Floyd Seq vs OpenMP'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
 		set xr [0.0:1024]; \
-		set yr [0:16]; \
+		set yr [0:22]; \
 		plot 'output/floydS.dat' using 1:2 title 'Floyd S' with linespoints pt 7 ps 1, \
-		     'output/floyd1D.dat' using 1:2 title 'Floyd1D CUDA' with linespoints pt 6 ps 1, \
-			 'output/floyd2D.dat' using 1:2 title 'Floyd2D CUDA' with linespoints pt 5 ps 1"
+		     'output/floyd1D.dat' using 1:2 title 'Floyd1D OpenMP' with linespoints pt 6 ps 1"
 	@echo "Creando gananciaFloyd.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
@@ -169,15 +168,14 @@ plot:
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Ganancia TSP con Difusion de Cota'; \
+		set title 'Ganancia Floyd OpenMP'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Ganancia (S)'; \
 		set key default; \
 		set xr [0.0:1024]; \
-		set yr [0:75]; \
+		set yr [0:2]; \
 		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
-		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1, \
-			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D' with linespoints pt 5 ps 1,"
+		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1"
 
 style:
 	@echo "Haciendo una copia de los originales..."
