@@ -1,5 +1,6 @@
 #include <omp.h>
 #include <stdio.h>
+#include <math.h>
 #include <algorithm>    // std::min
 using std::min;
 #include "floyd.h"
@@ -31,6 +32,28 @@ double floyd1DOpenMP(int * M, const int N, const int P){
                 }
             }
     	}
+    }
+    double t2 = omp_get_wtime();
+
+    return (t2-t1);
+}
+
+double floyd2DOpenMP(int * M, const int N, const int P){
+    int k, i, j, vikj;
+    int tamBloque = N/sqrt(P);
+    int chunk = tamBloque/P;
+
+    printf("Hay un total de %u hebras, cada se encarga de %u filas consecutivas\n", P, chunk );
+    double t1 = omp_get_wtime();
+    for(k = 0; k<N; k++){
+        // ponemos como shared k lo hacemos para que todas las hebras conozcan la fila k
+        #pragma omp parallel shared(k,M,chunk) private(i,j,vikj)
+        {
+            #pragma omp for schedule(static, chunk)
+            for(i = 0; i<tamBloque; i++){
+                
+            }
+        }
     }
     double t2 = omp_get_wtime();
 
