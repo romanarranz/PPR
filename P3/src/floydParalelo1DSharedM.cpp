@@ -15,10 +15,14 @@ using std::min;
 #include "floyd.h"
 
 // Error handling macro
-#define CUDA_CHECK(call) \
-    if((call) != cudaSuccess) { \
-        cudaError_t err = cudaGetLastError(); \
-        cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
+#define CUDA_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=false)
+{
+    if (code != cudaSuccess){
+        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
 
 void copiaGrafo(int * h_M, Graph g, int N){
     for(int i = 0; i<N; i++)
@@ -54,7 +58,7 @@ int main(int argc, char **argv){
     // CPU variables
     Graph G;
     G.lee(argv[1]);
-    G.imprime();
+    // G.imprime();
 
     const unsigned int N = G.vertices;
     const unsigned int sizeMatrix = N * N;

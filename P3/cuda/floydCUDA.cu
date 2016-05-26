@@ -6,10 +6,14 @@ using std::endl;
 
 #include "floyd.h"
 
-#define CUDA_CHECK(call) \
-    if((call) != cudaSuccess) { \
-        cudaError_t err = cudaGetLastError(); \
-        cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
+#define CUDA_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=false)
+{
+    if (code != cudaSuccess){
+        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
 
 // Kernel to update the Matrix at k-th iteration
 __global__ void floyd1DKernel(int * M, const int nverts, const int k){

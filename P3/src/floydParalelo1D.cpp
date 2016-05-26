@@ -18,10 +18,14 @@ using std::min;
 #include "floyd.h"
 
 // Error handling macro
-#define CUDA_CHECK(call) \
-    if((call) != cudaSuccess) { \
-        cudaError_t err = cudaGetLastError(); \
-        cerr << "CUDA error calling \""#call"\", code is " << err << endl; }
+#define CUDA_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=false)
+{
+    if (code != cudaSuccess){
+        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
 
 void guardarArchivo(std::string outputFile, int n, double t){
     std::ofstream archivo (outputFile.c_str(), std::ios_base::app | std::ios_base::out);
