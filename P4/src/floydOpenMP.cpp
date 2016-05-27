@@ -49,7 +49,7 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     int iLocalInicio, iLocalFinal;
     int jLocalInicio, jLocalFinal;
     iLocalInicio = iLocalFinal = jLocalInicio = jLocalFinal = 0;
-    
+
     int idProcesoBloqueK;
     int indicePartidaFilaK;
 
@@ -64,32 +64,40 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     printf("Hay un total de %u hebras, cada se encarga de %u filas consecutivas\n", P, chunk );
     double t1 = omp_get_wtime();
     for(k = 0; k<N; k++){
-        iLocalInicio = (omp_get_thread_num()/sqrtP) * tamBloque;
-        iLocalFinal = ((omp_get_thread_num()/sqrtP)+1) * tamBloque;
 
-        jLocalInicio = (omp_get_thread_num()%sqrtP) * tamBloque;
-        jLocalFinal = ((omp_get_thread_num()%sqrtP)+1) * tamBloque;
-
-        idProcesoBloqueK = k / tamBloque;
-        indicePartidaFilaK = k % tamBloque;
-
-        if (k >= iLocalInicio && k < iLocalFinal){
-            int ik = (k*N) + jLocalInicio;
-            copy(&M[ik], &M[ik] + tamBloque, filak);
-        }
-
-        if (k >= jLocalInicio && k < jLocalFinal){
-            for (i = 0; i < tamBloque; i++){
-                int kj = ((iLocalInicio + i )*N) + k;
-                columnak[i] = M[kj];
-            }
-        }
-
-        #pragma omp parallel shared(k,M,chunk,filak,columnak) private(i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
+        #pragma omp parallel shared(k,M,chunk,tamBloque,filak,columnak) private(i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
         {
+            iLocalInicio = (omp_get_thread_num()/sqrtP) * tamBloque;
+            iLocalFinal = ((omp_get_thread_num()/sqrtP)+1) * tamBloque;
+
+            jLocalInicio = (omp_get_thread_num()%sqrtP) * tamBloque;
+            jLocalFinal = ((omp_get_thread_num()%sqrtP)+1) * tamBloque;
+
+            idProcesoBloqueK = k / tamBloque;
+            indicePartidaFilaK = k % tamBloque;
+
+            if (k >= iLocalInicio && k < iLocalFinal){
+                int ik = (k*N) + jLocalInicio;
+                copy(&M[ik], &M[ik] + tamBloque, filak);
+                // imprimir valores
+            }
+
+            if (k >= jLocalInicio && k < jLocalFinal){
+                for (i = 0; i < tamBloque; i++){
+                    int kj = ((iLocalInicio + i )*N) + k;
+                    columnak[i] = M[kj];
+                    // imprimir valores
+                }
+            }
+
+            #pragma omp barrier
+            printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
+
             #pragma omp for schedule(static, chunk)
             for(i = iLocalInicio; i<iLocalFinal; i++){
                 iGlobal = iLocalInicio + i;
+
+                // imprimir iGlobal
                 for(j = jLocalInicio; j<jLocalFinal; j++){
                     jGlobal = jLocalInicio + j;
 

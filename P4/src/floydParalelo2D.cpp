@@ -40,6 +40,7 @@ int main(int argc, char **argv){
 
 	Graph G;
 	G.lee(argv[1]);		// Read the Graph
+    G.imprime();
 
     const int N = G.vertices;
     const int P = 4;
