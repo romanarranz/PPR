@@ -32,7 +32,7 @@ int main (int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numeroProcesos);
     MPI_Comm_rank(MPI_COMM_WORLD, &idProceso);
 
-    if (argc != 2) 
+    if (argc != 2)
 	{
 	   cerr << "Sintaxis: " << argv[0] << " <archivo de grafo>" << endl;
 	   return EXIT_FAILURE;
@@ -70,9 +70,9 @@ int main (int argc, char *argv[])
     // ==============================>
     /*
         Ejemplo: N = 4 P = 4   -> sqrtP = 2
-        [   P0    |   P1    ]   
+        [   P0    |   P1    ]
         [   P2    |   P3    ]
-    
+
         | P0 | P1 | P2 | P3 |
         ---------------------   Para P1
         | 0  | 0  | 1  | 1  |   idHorizontal = 1/2 = 0
@@ -83,7 +83,7 @@ int main (int argc, char *argv[])
             -> [    0     |   0     ]  P0 y P1 estan en la misma fila
             -> [    1     |   1     ]  P2 y P3 estan en la misma fila
 
-            CommVertical                 
+            CommVertical
             [    0     |   1     ]  P0 y P2 estan en la misma columna
             [    0     |   1     ]  P1 y P3 estan en la misma columna
                  ^         ^
@@ -92,7 +92,7 @@ int main (int argc, char *argv[])
         idVertical = idProceso % sqrtP,
         idProcesoHorizontal,
         idProcesoVertical;
-    
+
     MPI_Comm commHorizontal, commVertical;
 
     // Creamos los comunicadores, los procesos con el mismo idHorizontal entraran en el mismo comunicador, igual para idVertical
@@ -107,12 +107,12 @@ int main (int argc, char *argv[])
     // ============================================>
     MPI_Datatype MPI_BLOQUE;
     int bufferSalida[nverts*nverts];
-    int filaSubmatriz, columnaSubmatriz, comienzo;    
+    int filaSubmatriz, columnaSubmatriz, comienzo;
 
     if (idProceso == 0)
     {
         // Definimos bloque como una matriz cuadrada de tamaño tamBloque
-        MPI_Type_vector( 
+        MPI_Type_vector(
             tamBloque,  // tamaño del bloque
             tamBloque,  // separador entre bloque y bloque
             nverts,     // cantidad de bloques que cogemos (filas)
@@ -139,18 +139,18 @@ int main (int argc, char *argv[])
                 bufferSalida,                   // buffer de salida
                 sizeof(int) * nverts * nverts,  // tamaño del buffer de salida en bytes
                 &posActualBuffer,               // posicion actual del buffer de salida en bytes
-                MPI_COMM_WORLD          
+                MPI_COMM_WORLD
             );
         }
 
         // Liberamos el tipo de dato creado
         MPI_Type_free(&MPI_BLOQUE);
     }
-    
+
     // <== REPARTO DE LA MATRIZ A LOS PROCESOS
     // ============================================>
     int subMatriz[tamBloque][tamBloque];
-    
+
     // Repartimos los valores del grafo entre los procesos
     MPI_Scatter(
         bufferSalida,                           // Valores a compartir
@@ -161,13 +161,13 @@ int main (int argc, char *argv[])
         MPI_INT,                                // Tipo del dato que se recibira
         0,                                      // Proceso que reparte los datos al resto (En este caso es P0)
         MPI_COMM_WORLD
-    );    
+    );
 
     // <== FLOYD
-    // ============================================>  
+    // ============================================>
     int i, j, k, vikj, iGlobal, jGlobal,
         // Principio y fin filas del proceso
-        iLocalInicio = idHorizontal * tamBloque, 
+        iLocalInicio = idHorizontal * tamBloque,
         iLocalFinal = (idHorizontal + 1) * tamBloque,
         // Principio y fin columnas del proceso
         jLocalInicio = idVertical * tamBloque,
@@ -176,7 +176,7 @@ int main (int argc, char *argv[])
         indicePartidaFilaK = 0;
 
     int * filak = new int[tamBloque], * columnak = new int[tamBloque];
-    
+
     for(i = 0; i<tamBloque; i++)
     {
         filak[i] = 0;
@@ -196,12 +196,12 @@ int main (int argc, char *argv[])
         {
             copy(subMatriz[indicePartidaFilaK], subMatriz[indicePartidaFilaK] + tamBloque, filak);
         }
-        
+
         if (k >= jLocalInicio && k < jLocalFinal)
         {
-            for (i = 0; i < tamBloque; i++)            
+            for (i = 0; i < tamBloque; i++)
                 columnak[i] = subMatriz[i][indicePartidaFilaK];
-            
+
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -210,13 +210,13 @@ int main (int argc, char *argv[])
 
         for(i = 0; i<tamBloque; i++)
         {
-            iGlobal = iLocalInicio + i;    
+            iGlobal = iLocalInicio + i;
             for(j = 0; j<tamBloque; j++)
             {
                 jGlobal = jLocalInicio + j;
                 // no iterar sobre la diagonal (celdas a 0)
-                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k) 
-                {   
+                if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)
+                {
                     vikj = columnak[i] + filak[j];
                     vikj = min(vikj, subMatriz[i][j]);
                     subMatriz[i][j] = vikj;
@@ -240,7 +240,7 @@ int main (int argc, char *argv[])
     {
         MPI_Type_vector(tamBloque, tamBloque, nverts, MPI_INT, &MPI_BLOQUE);
         MPI_Type_commit(&MPI_BLOQUE);
-        
+
         int posicion = 0;
 
         for (int i = 0; i < numeroProcesos; i++) {
@@ -264,9 +264,9 @@ int main (int argc, char *argv[])
     }
 
     // <== MOSTRAR RESULTADOS
-    // ============================================>  
+    // ============================================>
     if(idProceso == 0){
-        
+
         cout << endl << "El Grafo con las distancias de los caminos más cortos es:" << endl;
         G->imprime();
         #if !COUT
@@ -285,9 +285,9 @@ int main (int argc, char *argv[])
     }
 
     MPI_Finalize();
-    
+
     delete [] filak;
     delete [] columnak;
 
-    return EXIT_SUCCESS; 
+    return EXIT_SUCCESS;
 }

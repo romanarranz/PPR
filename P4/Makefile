@@ -70,11 +70,23 @@ MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR = $(lastword $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))))
 
 all: binaries cleanup
-binaries: floydParalelo1D floydSecuencial creaEjemplo
+binaries: floydParalelo1D floydParalelo2D floydSecuencial creaEjemplo
 
 # ************ Ejecutables ************
 
+hybrid: $(OBJ)/hybrid.o
+	@echo "Creando $@..."
+	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
+	@$(CXX) $(CFLAGS) $(OPENMP) $(LDFLAGS) -o $@ $+
+	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
+
 floydParalelo1D: $(OBJ)/floydParalelo1D.o $(OBJ)/Graph.o $(OBJ)/floydOpenMP.o
+	@echo "Creando $@..."
+	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
+	@$(CXX) $(CFLAGS) $(OPENMP) $(LDFLAGS) -o $@ $+
+	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
+
+floydParalelo2D: $(OBJ)/floydParalelo2D.o $(OBJ)/Graph.o $(OBJ)/floydOpenMP.o
 	@echo "Creando $@..."
 	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
 	@$(CXX) $(CFLAGS) $(OPENMP) $(LDFLAGS) -o $@ $+
@@ -93,6 +105,9 @@ creaEjemplo: $(OBJ)/creaEjemplo.o
 	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
 
 # ************ Objetos ************
+$(OBJ)/hybrid.o: $(SRC)/hybrid.cpp
+	@echo "Creando $@..."
+	@$(CXX) $(CFLAGS) $(OPENMP) -c $< -o $@
 
 $(OBJ)/Graph.o: $(SRC)/Graph.cpp
 	@echo "Creando $@..."
@@ -103,6 +118,10 @@ $(OBJ)/floydOpenMP.o: $(SRC)/floydOpenMP.cpp
 	@$(CXX) $(CFLAGS) $(OPENMP) -c $< -o $@
 
 $(OBJ)/floydParalelo1D.o: $(SRC)/floydParalelo1D.cpp
+	@echo "Creando $@..."
+	@$(CXX) $(CFLAGS) -c $< -o $@
+
+$(OBJ)/floydParalelo2D.o: $(SRC)/floydParalelo2D.cpp
 	@echo "Creando $@..."
 	@$(CXX) $(CFLAGS) -c $< -o $@
 
