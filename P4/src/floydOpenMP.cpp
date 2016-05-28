@@ -10,6 +10,8 @@ double floyd1DOpenMP(int * M, const int N, const int P){
 
     int k, i, j, vikj;
     int chunk = N/P;
+
+    omp_set_dynamic(0);
     // lo optimo seria poner omp_get_num_procs() para aprovechar los recursos hw reales
     omp_set_num_threads(P);
 
@@ -45,14 +47,12 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     int tamBloque = N/sqrtP;
     int chunk = 1;//tamBloque/P;
 
+    omp_set_dynamic(0);
+    omp_set_num_threads(P);
 
     int iLocalInicio, iLocalFinal;
     int jLocalInicio, jLocalFinal;
     iLocalInicio = iLocalFinal = jLocalInicio = jLocalFinal = 0;
-
-    int idProcesoBloqueK;
-    int indicePartidaFilaK;
-
 
     int * filak = new int[tamBloque];
     int * columnak = new int[tamBloque];
@@ -73,32 +73,35 @@ double floyd2DOpenMP(int * M, const int N, const int P){
             jLocalInicio = (omp_get_thread_num()%sqrtP) * tamBloque;
             jLocalFinal = ((omp_get_thread_num()%sqrtP)+1) * tamBloque;
 
-            idProcesoBloqueK = k / tamBloque;
-            indicePartidaFilaK = k % tamBloque;
-
             if (k >= iLocalInicio && k < iLocalFinal){
                 int ik = (k*N) + jLocalInicio;
                 copy(&M[ik], &M[ik] + tamBloque, filak);
-                // imprimir valores
+
+                // todas las hebras deben tener una vision consistente de filak
+                #pragma omp flush(filak)
             }
 
             if (k >= jLocalInicio && k < jLocalFinal){
                 for (i = 0; i < tamBloque; i++){
                     int kj = ((iLocalInicio + i )*N) + k;
                     columnak[i] = M[kj];
-                    // imprimir valores
+                    //printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),kj,M[kj]);
                 }
+                // todas las hebras deben tener una vision consistente de columnak
+                #pragma omp flush(columnak)
             }
 
-            #pragma omp barrier
-            printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
+            //printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
 
-            #pragma omp for schedule(static, chunk)
+            // con ordered ejecuta el codigo de forma secuencial y solo una hebra
+            #pragma omp for schedule(static, chunk) ordered
             for(i = iLocalInicio; i<iLocalFinal; i++){
+                #pragma omp ordered
                 iGlobal = iLocalInicio + i;
+                printf("k=%u, T%u => i:%u\n", k, omp_get_thread_num(), iGlobal );
 
-                // imprimir iGlobal
                 for(j = jLocalInicio; j<jLocalFinal; j++){
+                    #pragma omp ordered
                     jGlobal = jLocalInicio + j;
 
                     if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)
