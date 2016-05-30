@@ -54,9 +54,9 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     int jLocalInicio, jLocalFinal;
     iLocalInicio = iLocalFinal = jLocalInicio = jLocalFinal = 0;
 
-    int * filak = new int[tamBloque];
-    int * columnak = new int[tamBloque];
-    for(i = 0; i<tamBloque; i++){
+    int * filak = new int[N];
+    int * columnak = new int[N];
+    for(i = 0; i<N; i++){
         filak[i] = 0;
         columnak[i] = 0;
     }
@@ -65,7 +65,7 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     double t1 = omp_get_wtime();
     for(k = 0; k<N; k++){
 
-        #pragma omp parallel shared(k,M,chunk,tamBloque,filak,columnak) private(i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
+        #pragma omp parallel shared(k,M,chunk,tamBloque,columnak,filak) private(i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
         {
             iLocalInicio = (omp_get_thread_num()/sqrtP) * tamBloque;
             iLocalFinal = ((omp_get_thread_num()/sqrtP)+1) * tamBloque;
@@ -75,24 +75,12 @@ double floyd2DOpenMP(int * M, const int N, const int P){
 
             #pragma omp critical
             {
-                /* las hebras asignan basura a algunos contenidos de la filak ¿?¿?, descomentar for */
-                if (k >= iLocalInicio && k < iLocalFinal){
-                    int ik = (k*N) + jLocalInicio;
-                    copy(&M[ik], &M[ik] + tamBloque, filak);
-                    for(i = 0; i<tamBloque; i++){
-                        printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),ik+i,M[ik+i]);
-                    }
-                }
-
-                /* las hebras asignan basura a algunos contenidos de la columnak ¿?¿?, descomentar printf */
-                if (k >= jLocalInicio && k < jLocalFinal){
-                    for (i = 0; i < tamBloque; i++){
-                        int kj = ((iLocalInicio + i )*N) + k;
-                        columnak[i] = M[kj];
-                        //printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),kj,M[kj]);
-                    }
+                for(i = 0; i<N; i++){
+                    filak[i] = M[ k * N + i];
+                    columnak[i] = M[i * N + k];
                 }
             }
+
             // printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
 
             for(i = iLocalInicio; i<iLocalFinal; i++){
@@ -102,7 +90,6 @@ double floyd2DOpenMP(int * M, const int N, const int P){
                         int ij = (i*N) + j;
                         vikj = columnak[i] + filak[j];
                         vikj = min(vikj, M[ij]);
-                        #pragma omp critical
                         M[ij] = vikj;
                     }
                 }

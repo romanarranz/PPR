@@ -25,10 +25,10 @@ void guardarArchivo(string outputFile, int n, double t){
         cout << "No se puede abrir el archivo";
 }
 
-void copiaGrafo(int * h_M, Graph g, int N){
+void copiaGrafo(int * M, Graph g, int N){
     for(int i = 0; i<N; i++)
         for(int j = 0; j<N; j++)
-            h_M[(i*N)+j] = g.arista(i,j);
+            M[(i*N)+j] = g.arista(i,j);
 }
 
 int main(int argc, char **argv){
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
 
 	Graph G;
 	G.lee(argv[1]);		// Read the Graph
-    G.imprime();
+    // G.imprime();
 
     const int N = G.vertices;
     const int P = 4;
