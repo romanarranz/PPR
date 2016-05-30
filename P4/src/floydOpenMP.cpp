@@ -42,7 +42,7 @@ double floyd1DOpenMP(int * M, const int N, const int P){
 }
 
 double floyd2DOpenMP(int * M, const int N, const int P){
-    int k, i, j, vikj, iGlobal, jGlobal;
+    int k, i, j, vikj;
     int sqrtP = sqrt(P);
     int tamBloque = N/sqrtP;
     int chunk = 1;//tamBloque/P;
@@ -73,47 +73,41 @@ double floyd2DOpenMP(int * M, const int N, const int P){
             jLocalInicio = (omp_get_thread_num()%sqrtP) * tamBloque;
             jLocalFinal = ((omp_get_thread_num()%sqrtP)+1) * tamBloque;
 
-            if (k >= iLocalInicio && k < iLocalFinal){
-                int ik = (k*N) + jLocalInicio;
-                copy(&M[ik], &M[ik] + tamBloque, filak);
-
-                // todas las hebras deben tener una vision consistente de filak
-                #pragma omp flush(filak)
-            }
-
-            if (k >= jLocalInicio && k < jLocalFinal){
-                for (i = 0; i < tamBloque; i++){
-                    int kj = ((iLocalInicio + i )*N) + k;
-                    columnak[i] = M[kj];
-                    //printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),kj,M[kj]);
+            #pragma omp critical
+            {
+                /* las hebras asignan basura a algunos contenidos de la filak ¿?¿?, descomentar for */
+                if (k >= iLocalInicio && k < iLocalFinal){
+                    int ik = (k*N) + jLocalInicio;
+                    copy(&M[ik], &M[ik] + tamBloque, filak);
+                    for(i = 0; i<tamBloque; i++){
+                        printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),ik+i,M[ik+i]);
+                    }
                 }
-                // todas las hebras deben tener una vision consistente de columnak
-                #pragma omp flush(columnak)
+
+                /* las hebras asignan basura a algunos contenidos de la columnak ¿?¿?, descomentar printf */
+                if (k >= jLocalInicio && k < jLocalFinal){
+                    for (i = 0; i < tamBloque; i++){
+                        int kj = ((iLocalInicio + i )*N) + k;
+                        columnak[i] = M[kj];
+                        //printf("k=%u, T%u => M[%u] = %u\n", k, omp_get_thread_num(),kj,M[kj]);
+                    }
+                }
             }
+            // printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
 
-            //printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
-
-            // con ordered ejecuta el codigo de forma secuencial y solo una hebra
-            #pragma omp for schedule(static, chunk) ordered
             for(i = iLocalInicio; i<iLocalFinal; i++){
-                #pragma omp ordered
-                iGlobal = iLocalInicio + i;
-                printf("k=%u, T%u => i:%u\n", k, omp_get_thread_num(), iGlobal );
-
                 for(j = jLocalInicio; j<jLocalFinal; j++){
-                    #pragma omp ordered
-                    jGlobal = jLocalInicio + j;
-
-                    if (iGlobal != jGlobal && iGlobal != k && jGlobal != k)
-                    {
-                        int ij = (iGlobal*N) + j;
+                    // printf("k=%u, T%u => i:%u , j:%u\n", k, omp_get_thread_num(), i, j );
+                    if (i != j && i != k && j != k){
+                        int ij = (i*N) + j;
                         vikj = columnak[i] + filak[j];
                         vikj = min(vikj, M[ij]);
+                        #pragma omp critical
                         M[ij] = vikj;
                     }
                 }
             }
-        }
+        } // end parallel
     }
     double t2 = omp_get_wtime();
 
