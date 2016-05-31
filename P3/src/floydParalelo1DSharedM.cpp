@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string.h>
 #include <time.h>
+#include <sstream>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -22,6 +23,20 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=f
         fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
         if (abort) exit(code);
     }
+}
+
+void guardarArchivo(std::string outputFile, int n, double t){
+    std::ofstream archivo (outputFile.c_str(), std::ios_base::app | std::ios_base::out);
+    if (archivo.is_open()){
+        std::stringstream ns, ts;
+        ns << n;
+        ts << t;
+        std::string input =  ns.str() + "\t" + ts.str() + "\n";
+        archivo << input;
+        archivo.close();
+    }
+    else
+        cout << "No se puede abrir el archivo";
 }
 
 void copiaGrafo(int * h_M, Graph g, int N){
@@ -110,27 +125,12 @@ int main(int argc, char **argv){
             }
         }
     }
-    if(error){
-        int i,j,vij;
-        for(i = 0; i < N; i++){
-            cout << "A[" << i << ",*]= ";
-
-            for(j=0;j<N;j++){
-                if (h_M[i*N+j]==INF)
-                    cout << "INF";
-                else
-                    cout << h_M[i*N+j];
-
-                if (j<N-1)
-                    cout << ",";
-                else
-                    cout << endl;
-            }
-        }
-
-        cout <<"With ERRORS" << endl;
-    }
+    if(error) cout << "With ERRORS" << endl;
     else cout << "ALL OK" << endl;
+
+    // Guardar en el archivo los resultados
+    std::string archivo = "output/floyd1DShared.dat";
+    guardarArchivo(archivo, N, Tgpu);
 
     // Liberando memoria de CPU
     free(h_M);

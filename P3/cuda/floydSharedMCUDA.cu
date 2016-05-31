@@ -64,38 +64,39 @@ __global__ void floyd1DSharedMKernel(int * M, const int nverts, const int k, con
     }
 }
 
-extern __shared__ int smem[];
+//extern __shared__ int smem[];
 __global__ void floyd2DSharedMKernel(int * M, const int nverts, const int k, const int blockSize){
     // <== INICIALIZACION
     // ====================================>
-    int li = threadIdx.x;
-    int lj = threadIdx.y;
-    int ii = blockIdx.x * blockDimm.x + threadIdx.x;
-    int i = ii/nverts;
-    int j = ii - (i*nverts);
+    int li = threadIdx.y;
+    int lj = threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int ij = (i*nverts) + j;
 
     // <== PREPARAR DATOS
     // ====================================>
     // vectores de memoria compartida
     int * s_rowK = (int *) &smem;                    // filak del bloque
-    int * s_colK = (int *) &s_rowI[blockSize/2];     // columnak del bloque
+    int * s_colK = (int *) &s_rowK[blockSize/2];     // columnak del bloque
 
     // cargar los datos al vector de memoria compartida
     int ik = (k*nverts) + j;
     int kj = (i*nverts) + k;
-    s_rowK[li] = M[ik];
-    s_colK[li] = M[kj];
+
+    if (li == 0)
+      s_rowK[lj] = M[ik];
+
+    if (lj == 0)
+      s_colK[li] = M[kj];
 
     __syncthreads();
 
     // <== CALCULO
     // ====================================>
-    // fila de la primera hebra del bloque
-    int rowFirstBTid = floor((double) (blockIdx.x * blockDim.x) / nverts);
-
     if(i < nverts && j < nverts){
         if (i!=j && i!=k && j!=k){
-            M[ii] = min(s_ik[0] + s_rowK[li], s_rowI[li]);
+            M[ij] = min(s_rowK[lj] + s_colK[li], M[ij]);
         }
     }
 }
@@ -120,7 +121,7 @@ void floyd1DSharedMGPU(int * h_M, int N, int numBloques, int numThreadsBloque){
     cout << "GPU: Calculando..." << endl;
     dim3 nblocks(numBloques);
     dim3 threadsPerBlock(numThreadsBloque, 1);
-    int blockSize = numThreadsBloque * 2;
+    int blockSize = numThreadsBloque * 2; // 2 * blockSize
     for(int k = 0; k < N; k++){
         floyd1DSharedMKernel<<< nblocks, threadsPerBlock, blockSize * sizeof(int) >>> (d_M, N, k, blockSize );
     }
@@ -132,12 +133,7 @@ void floyd1DSharedMGPU(int * h_M, int N, int numBloques, int numThreadsBloque){
     cudaDeviceReset();
 }
 
-void floyd2DSharedMGPU(int * h_M, int N, int numBloques, int numThreadsBloque){
-    // Compute Capability             1.x    2.x - 3.x
-    // ---------------------------------------------------
-    // Threads per block              512    1024
-    // Max shared memory (per block)  16KB   48KB
-
+void floyd2DSharedMGPU(int *h_M, int N, dim3 numBlocks, dim3 threadsPerBlock){
     unsigned int sizeMatrix = N * N;
     unsigned int memSize = sizeMatrix * sizeof(int);
 
@@ -150,11 +146,9 @@ void floyd2DSharedMGPU(int * h_M, int N, int numBloques, int numThreadsBloque){
     CUDA_CHECK(cudaMemcpy(d_M, h_M, memSize, cudaMemcpyHostToDevice));
 
     cout << "GPU: Calculando..." << endl;
-    dim3 nblocks(numBloques);
-    dim3 threadsPerBlock(numThreadsBloque, 1);
-    int blockSize = numThreadsBloque * 2;
+    int blockSize = threadsPerBlock.x * 2;
     for(int k = 0; k < N; k++){
-        floyd1DSharedMKernel<<< nblocks, threadsPerBlock, blockSize * sizeof(int) >>> (d_M, N, k, blockSize );
+        floyd2DSharedMKernel<<< numBlocks, threadsPerBlock, blockSize * sizeof(int) >>> (d_M, N, k, blockSize );
     }
 
     cout << "CPU: Copiando los resultados de la GPU DRAM a la CPU RAM..." << endl;
