@@ -58,7 +58,7 @@ int main(int argc, char **argv){
     cout << "Hay " << sizeMatrix << " elementos y se han reservado " << memSize << "B" << endl;
 
     // Calc
-    double tFloyd = floyd2DOpenMP(M, N, P);
+    double tFloyd = floyd2_2DOpenMP(M, N, P);
 
     cout << "Mostrando resultados..." << endl;
     cout << "Tiempo gastado = " << tFloyd << endl << endl;
