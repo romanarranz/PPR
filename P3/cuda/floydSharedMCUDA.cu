@@ -15,8 +15,9 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=f
     }
 }
 
-// Kernel to update the Matrix at k-th iteration
+// solo defino una vez el area de memoria compartida de forma dinamica, para que por cada llamada CUDA vuelque aqui el contenido
 extern __shared__ int smem[];
+
 __global__ void floyd1DSharedMKernel(int * M, const int nverts, const int k, const int blockSize){
     // <== INICIALIZACION
     // ====================================>
@@ -64,7 +65,6 @@ __global__ void floyd1DSharedMKernel(int * M, const int nverts, const int k, con
     }
 }
 
-//extern __shared__ int smem[];
 __global__ void floyd2DSharedMKernel(int * M, const int nverts, const int k, const int blockSize){
     // <== INICIALIZACION
     // ====================================>
