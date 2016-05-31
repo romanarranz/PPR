@@ -45,7 +45,6 @@ double floyd2DOpenMP(int * M, const int N, const int P){
     int k, i, j, vikj;
     int sqrtP = sqrt(P);
     int tamBloque = N/sqrtP;
-    int chunk = 1;//tamBloque/P;
 
     omp_set_dynamic(0);
     omp_set_num_threads(P);
@@ -63,11 +62,11 @@ double floyd2DOpenMP(int * M, const int N, const int P){
         columnak[i] = 0;
     }
 
-    printf("Hay un total de %u hebras, cada se encarga de %u filas consecutivas\n", P, chunk );
+    printf("Hay un total de %u hebras\n", P );
     double t1 = omp_get_wtime();
 
     // ponemos la construccion del bloque paralelo aqui para ahorrar sincronizacion de hebras
-    #pragma omp parallel shared(M,chunk,tamBloque,columnak,filak) private(k,i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
+    #pragma omp parallel shared(M,tamBloque,columnak,filak) private(k,i,j,vikj,iLocalInicio,iLocalFinal,jLocalInicio,jLocalFinal)
     {
         int tidDSqrt = omp_get_thread_num()/sqrtP;
         int tidMSqrt = omp_get_thread_num()%sqrtP;
@@ -79,12 +78,23 @@ double floyd2DOpenMP(int * M, const int N, const int P){
         jLocalFinal = (tidMSqrt+1) * tamBloque;
 
         for(k = 0; k<N; k++){
-            #pragma omp barrier
+            int kn = k * N;
 
-            for(i = 0; i<N; i++){
-                filak[i] = M[ k * N + i];
-                columnak[i] = M[i * N + k];
+            // sincronizamos las hebras para que conozcan su kn y sus limites de i,j locales
+            #pragma omp barrier
+            if (k >= iLocalInicio && k < iLocalFinal){
+                for(i = 0; i<N; i++){
+                    filak[i] = M[ kn + i];
+                }
             }
+
+            if (k >= jLocalInicio && k < jLocalFinal){
+                for(i = 0; i<N; i++){
+                    columnak[i] = M[i * N + k];
+                }
+            }
+            // sincronizamos las hebras para que actualicen su filak y columnak con la ultima actualizacion que hizo la ultima hebra que ejecuto este bloque
+            #pragma omp barrier
 
             // printf("k = %u \n\tT%u -> iStart: %u, iEnd:%u || jStart: %u, jEnd: %u\n", k, omp_get_thread_num(), iLocalInicio, iLocalFinal, jLocalInicio, jLocalFinal);
 
