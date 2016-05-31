@@ -89,7 +89,7 @@ int main(int argc, char **argv){
     else cout << "ALL OK" << endl;
 
     // Guardar en el archivo los resultados
-    std::string archivo = "output/floyd1D.dat";
+    std::string archivo = "output/floyd2D.dat";
     guardarArchivo(archivo, N, tFloyd);
 
     // Liberando memoria de CPU
