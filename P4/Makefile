@@ -63,7 +63,7 @@ CC  := gcc-5
 DEBUG := -Wall -g
 PROD := -O3
 
-CFLAGS := $(DEBUG) -I$(INC)
+CFLAGS := $(PROD) -I$(INC)
 LDFLAGS := -L/usr/local/lib
 
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -174,9 +174,10 @@ plot:
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
 		set xr [0.0:1024]; \
-		set yr [0:22]; \
+		set yr [0:6]; \
 		plot 'output/floydS.dat' using 1:2 title 'Floyd S' with linespoints pt 7 ps 1, \
-		     'output/floyd1D.dat' using 1:2 title 'Floyd1D OpenMP' with linespoints pt 6 ps 1"
+			 'output/floyd1D.dat' using 1:2 title 'Floyd1D OpenMP' with linespoints pt 6 ps 1, \
+		     'output/floyd2D.dat' using 1:2 title 'Floyd2D OpenMP' with linespoints pt 5 ps 1"
 	@echo "Creando gananciaFloyd.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
@@ -194,7 +195,8 @@ plot:
 		set xr [0.0:1024]; \
 		set yr [0:4]; \
 		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
-		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1"
+			 'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D OpenMP' with linespoints pt 6 ps 1, \
+		     'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D OpenMP' with linespoints pt 5 ps 1"
 
 style:
 	@echo "Haciendo una copia de los originales..."
