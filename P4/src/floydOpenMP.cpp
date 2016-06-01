@@ -17,10 +17,9 @@ double floyd1DOpenMP(int * M, const int N, const int P){
 
     printf("Hay un total de %u hebras, cada se encarga de %u filas consecutivas\n", P, chunk );
     double t1 = omp_get_wtime();
+    #pragma omp parallel shared(M,k,chunk) private(i,j,vikj)
+    {
         for(k = 0; k<N; k++){
-            #pragma omp parallel shared(M,k,chunk) private(i,j,vikj)
-            {
-
             #pragma omp for schedule(static, chunk)
     		for(i = 0; i<N; i++){
                 int ik = i*N + k;
