@@ -32,6 +32,20 @@ En esta práctica se aborda la implementación paralela del algoritmo del proble
 > **Única implementación**
 
 
+#### Práctica 3: Implementación de un algoritmo paralelo usando NVidia CUDA
+Durante la elaboración de esta práctica se han desarrollado diferentes implementaciones del algoritmo Floyd Warshall para encontrar los caminos mínimos entre ciudades en la cual se ha usado CUDA como herramienta de programación ofrecida por NVidia.
+
+> **Consideraciones**
+> 
+> - Se recuerda que los kernels de CUDA se trata del codigo que ejecuta una sola hebra.
+> - Se han implementado diferentes formas de abordar el algoritmo:
+> 	- Floyd1D recorriendo las filas de la matriz M.
+> 	- Floyd2D distribucion por bloques de nHebras * nHebras de la martiz.
+> 	- Floyd1DShared recorrido por filas de la matriz M en la cual la filak y la columnak se encuentran en la memoria compartida de la gráfica.
+> 	- Floyd2DShared distribución por bloques en los cuales la subfilak y la subcolumnak se encuentran en la memoria compartida de la gráfica.
+> - Se debe compilar usando las rutas de **nvcc** propias de su sistema.
+
+
 ## Licencia
 
 Los detalles se encuentran en el archivo `LICENSE`. En resumen, todo el contenido tiene como licencia **MIT License** por lo tanto es totalmente gratuito su uso para proyectos privados o de uso comercial.
