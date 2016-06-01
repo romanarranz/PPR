@@ -29,8 +29,8 @@ __global__ void floyd1DSharedMKernel(int * M, const int nverts, const int k, con
     // <== PREPARAR DATOS
     // ====================================>
     // vectores de memoria compartida
-    int *s_rowI = (int *) &smem; //a is manually set at the beginning of shared
-    int *s_rowK = (int *) &s_rowI[blockSize/2]; //b is manually set at the end of a
+    int *s_rowI = (int *) &smem;
+    int *s_rowK = (int *) &s_rowI[blockSize/2]; 
     __shared__ int s_ik[2];
 
     // cargar los datos al vector de memoria compartida

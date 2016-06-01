@@ -291,10 +291,12 @@ plot:
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
 		set xr [0.0:1024]; \
-		set yr [0:16]; \
+		set yr [0:6]; \
 		plot 'output/floydS.dat' using 1:2 title 'Floyd S' with linespoints pt 7 ps 1, \
 		     'output/floyd1D.dat' using 1:2 title 'Floyd1D CUDA' with linespoints pt 6 ps 1, \
-			 'output/floyd2D.dat' using 1:2 title 'Floyd2D CUDA' with linespoints pt 5 ps 1"
+			 'output/floyd1DShared.dat' using 1:2 title 'Floyd1DShared CUDA' with linespoints pt 5 ps 1, \
+			 'output/floyd2D.dat' using 1:2 title 'Floyd1D CUDA' with linespoints pt 4 ps 1, \
+			 'output/floyd2DShared.dat' using 1:2 title 'Floyd2DShared CUDA' with linespoints pt 3 ps 1"
 	@echo "Creando gananciaFloyd.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
@@ -313,7 +315,9 @@ plot:
 		set yr [0:75]; \
 		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
 		     'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 6 ps 1, \
-			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D' with linespoints pt 5 ps 1,"
+			 'output/gananciaS_1DShared.dat' using 1:2 title 'Ganancia1DShared' with linespoints pt 5 ps 1, \
+			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia1D' with linespoints pt 4 ps 1, \
+			 'output/gananciaS_2DShared.dat' using 1:2 title 'Ganancia2DShared' with linespoints pt 3 ps 1,"
 
 style:
 	@echo "Haciendo una copia de los originales..."
