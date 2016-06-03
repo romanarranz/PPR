@@ -200,7 +200,7 @@ plot:
 			 'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D OpenMP' with linespoints pt 6 ps 1, \
 			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D OpenMP' with linespoints pt 5 ps 1, \
 			 'output/gananciaS_1D_ilex.dat' using 1:2 title 'Ganancia1D Ilex OpenMP' with linespoints pt 4 ps 1, \
-			 'output/gananciaS_2D_ilex.dat' using 1:2 title 'Ganancia1D Ilex OpenMP' with linespoints pt 3 ps 1"
+			 'output/gananciaS_2D_ilex.dat' using 1:2 title 'Ganancia2D Ilex OpenMP' with linespoints pt 3 ps 1"
 style:
 	@echo "Haciendo una copia de los originales..."
 	@if [ ! -d "src/old" ]; then mkdir src/old; fi
