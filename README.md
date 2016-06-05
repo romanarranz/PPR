@@ -45,6 +45,15 @@ Durante la elaboración de esta práctica se han desarrollado diferentes impleme
 > 	- Floyd2DShared distribución por bloques en los cuales la subfilak y la subcolumnak se encuentran en la memoria compartida de la gráfica.
 > - Se debe compilar usando las rutas de **nvcc** propias de su sistema.
 
+#### Práctica 4: Implementación paralela mutihebra de algoritmos modelo usando OpenMP
+Se ha desarrollado la implementación del algoritmo Floyd Warshall para encontrar los caminos mínimos entre ciudades usando la herramienta de OpenMP para la programación de hebras usando memoria compartida.
+
+> **Consideraciones**
+> 
+> - Se han implementado diferentes formas de abordar el algoritmo:
+> 	- Floyd1D asignando bloques de filas de la matriz M a las hebras.
+> 	- Floyd2D distribución por bloques a cada hebra de tamaño N/sqrt(P) de la matriz M, se le asigna a cada hebra una submatriz de tamaño N/sqrt(P) * N/sqrt(P).
+> - Para que el código sea completamente óptimo debe ajustarse al hardware de la máquina con la que se vaya a realizar las pruebas, debemos hacer un ajuste de tal forma: `omp_set_num_threads(omp_get_num_procs());` y teniendo en cuenta si el equipo posee hypertthreading asignariamos `omp_set_num_threads(omp_get_num_procs()*n);` siendo **n** el número de cores virtuales que disponemos. 
 
 ## Licencia
 
