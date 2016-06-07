@@ -53,7 +53,7 @@ endif
 OPENMP := -fopenmp
 
 SRC := src
-INC :=
+INC := include
 OBJ := obj
 BIN := bin
 LIB :=
@@ -63,7 +63,7 @@ CC  := gcc-5
 DEBUG := -Wall -g
 PROD := -O3
 
-CFLAGS := $(PROD)
+CFLAGS := $(PROD) -I$(INC)
 LDFLAGS := -L/usr/local/lib
 
 MAKEFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -74,16 +74,21 @@ binaries: main
 
 # ************ Ejecutables ************
 
-main: $(OBJ)/main.o
+main: $(OBJ)/main.o $(OBJ)/schedules.o
 	@echo "Creando $@..."
 	@mkdir -p $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
 	@$(CXX) $(CFLAGS) $(OPENMP) $(LDFLAGS) -o $@ $+
 	@mv $@ $(BIN)/$(TARGET_ARCH)/$(TARGET_OS)
 
 # ************ Objetos ************
-$(OBJ)/main.o: $(SRC)/main.cpp
+
+$(OBJ)/schedules.o: $(SRC)/schedules.cpp
 	@echo "Creando $@..."
 	@$(CXX) $(CFLAGS) $(OPENMP) -c $< -o $@
+
+$(OBJ)/main.o: $(SRC)/main.cpp
+	@echo "Creando $@..."
+	@$(CXX) $(CFLAGS) -c $< -o $@
 
 # ************ Clean UP ************
 cleanup:
@@ -110,31 +115,30 @@ tar:
 # ************ Grafica ************
 plot: SHELL:=/bin/bash
 plot:
-	@echo "Creando floydOpenMP.gif..."
+	@echo "Creando scheduleOpenMP.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
-		set output 'floydOpenMP.gif'; \
+		set output 'scheduleOpenMP.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
 		set border linewidth 2; \
 		set xtic auto; \
 		set ytic auto; \
-		set title 'Floyd Seq vs OpenMP'; \
+		set title 'Schedules OpenMP'; \
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Tiempo de computo (seg)'; \
 		set key default; \
-		set xr [0.0:1024]; \
-		set yr [0:6]; \
-		plot 'output/floydS.dat' using 1:2 title 'Floyd S' with linespoints pt 7 ps 1, \
-			 'output/floyd1D.dat' using 1:2 title 'Floyd1D OpenMP' with linespoints pt 6 ps 1, \
-			 'output/floyd2D.dat' using 1:2 title 'Floyd2D OpenMP' with linespoints pt 5 ps 1, \
-			 'output/floyd1D_ilex.dat' using 1:2 title 'Floyd1D Ilex OpenMP' with linespoints pt 4 ps 1, \
-		     'output/floyd2D_ilex.dat' using 1:2 title 'Floyd2D Ilex OpenMP' with linespoints pt 3 ps 1"
-	@echo "Creando gananciaFloyd.gif..."
+		set xr [0.0:50000]; \
+		set yr [0:8]; \
+		plot 'output/staticCiclic.dat' using 1:2 title 'Static Ciclic' with linespoints pt 7 ps 1, \
+			 'output/staticBlocks.dat' using 1:2 title 'Static Blocks' with linespoints pt 6 ps 1, \
+			 'output/dynamic.dat' using 1:2 title 'Dynamic' with linespoints pt 5 ps 1, \
+			 'output/guided.dat' using 1:2 title 'Guided' with linespoints pt 4 ps 1"
+	@echo "Creando gananciaSchedule.gif..."
 	@gnuplot <<< "\
 		set terminal gif size 800,600 font 'Verdana,10'; \
-		set output 'gananciaFloyd.gif'; \
+		set output 'gananciaSchedule.gif'; \
 		set autoscale; \
 		unset log; \
 		unset label; \
@@ -145,10 +149,9 @@ plot:
 		set xlabel 'Tamaño del problema'; \
 		set ylabel 'Ganancia (S)'; \
 		set key default; \
-		set xr [0.0:1024]; \
-		set yr [0:22]; \
-		plot 'output/gananciaS.dat' using 1:2 title 'GananciaS' with linespoints pt 7 ps 1, \
-			 'output/gananciaS_1D.dat' using 1:2 title 'Ganancia1D OpenMP' with linespoints pt 6 ps 1, \
-			 'output/gananciaS_2D.dat' using 1:2 title 'Ganancia2D OpenMP' with linespoints pt 5 ps 1, \
-			 'output/gananciaS_1D_ilex.dat' using 1:2 title 'Ganancia1D Ilex OpenMP' with linespoints pt 4 ps 1, \
-			 'output/gananciaS_2D_ilex.dat' using 1:2 title 'Ganancia2D Ilex OpenMP' with linespoints pt 3 ps 1"
+		set xr [0.0:50000]; \
+		set yr [0:2]; \
+		plot 'output/gananciaGuided.dat' using 1:2 title 'Guided' with linespoints pt 7 ps 1, \
+			 'output/gananciaStaticCiclic.dat' using 1:2 title 'Static Ciclic' with linespoints pt 6 ps 1, \
+			 'output/gananciaStaticBlocks.dat' using 1:2 title 'Static Blocks' with linespoints pt 5 ps 1, \
+			 'output/gananciaDynamic.dat' using 1:2 title 'Dynamic' with linespoints pt 4 ps 1"

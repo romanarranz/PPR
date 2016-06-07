@@ -1,92 +1,39 @@
 #include <iostream>
-#include <omp.h>
 #include <stdlib.h>
-#include <math.h>
 #include <time.h>
+#include <string.h>
+#include <sstream>
+#include <fstream>
+
+#include "schedules.h"
 
 using namespace std;
 
-int f(int i){
-    int res = 0;
-    for(int k = 0; k<i; k++)
-        res += k * ( (int) sqrt(k) + 4 % 11);
-
-    return res;
-}
-
-double schedule_static_ciclic(int * v, int N, const int k){
-    omp_set_dynamic(0);
-    omp_set_num_threads(omp_get_num_procs());
-
-    int chunk = 1;
-    int i;
-
-    double t1 = omp_get_wtime();
-    #pragma omp parallel for schedule(static,chunk) shared(v,N,chunk) private(i) default(none)
-    for(i = 0; i<N; i++){
-        v[i] = f(v[i]);
+void guardarArchivo(string outputFile, int n, double t){
+    ofstream archivo (outputFile.c_str(), ios_base::app | std::ios_base::out);
+    if (archivo.is_open()){
+        stringstream ns, ts;
+        ns << n;
+        ts << t;
+        string input =  ns.str() + "\t" + ts.str() + "\n";
+        archivo << input;
+        archivo.close();
     }
-    double t2 = omp_get_wtime();
-
-    return t2 - t1;
+    else
+        cout << "No se puede abrir el archivo";
 }
 
-double schedule_static_blocks(int * v, int N, const int k){
-    omp_set_dynamic(0);
-    omp_set_num_threads(omp_get_num_procs());
+int main(int argc, char ** argv){
 
-    int chunk = N/(2 * omp_get_num_threads());
-    int i;
-
-    double t1 = omp_get_wtime();
-    #pragma omp parallel for schedule(static,chunk) shared(v,N,chunk) private(i) default(none)
-    for(i = 0; i<N; i++){
-        v[i] = f(v[i]);
+    if(argc < 2){
+        cerr << "Error: " << argv[0] << " size" << endl;
+        exit(-1);
     }
-    double t2 = omp_get_wtime();
-
-    return t2 - t1;
-}
-
-double schedule_dynamic(int * v, int N, const int k){
-    omp_set_dynamic(1);
-    omp_set_num_threads(omp_get_num_procs());
-
-    int chunk = N/(2 * omp_get_num_threads());
-    int i;
-
-    double t1 = omp_get_wtime();
-    #pragma omp parallel for schedule(dynamic,chunk) shared(v,N,chunk) private(i) default(none)
-    for(int i = 0; i<N; i++){
-        v[i] = f(v[i]);
-    }
-    double t2 = omp_get_wtime();
-
-    return t2 - t1;
-}
-
-double schedule_guided(int * v, int N, const int k){
-    omp_set_dynamic(0);
-    omp_set_num_threads(omp_get_num_procs());
-
-    int i;
-
-    double t1 = omp_get_wtime();
-    #pragma omp parallel for schedule(guided) shared(v,N) private(i) default(none)
-    for(int i = 0; i<N; i++){
-        v[i] = f(v[i]);
-    }
-    double t2 = omp_get_wtime();
-
-    return t2 - t1;
-}
-
-int main(){
 
     int option = 0;
     double t;
 
-    const unsigned int N = 10000;
+    const unsigned int N = atoi(argv[1]);
     const unsigned int k = 8;
 
     const unsigned int memSize = N * sizeof(int);
@@ -98,6 +45,7 @@ int main(){
         A[i] = 1 + i;
     }
 
+    string fileName = "";
     do {
         cout << "****** Testing OpenMP Statistics ******" << endl;
         cout << "Execute very computational cost function with differents options" << endl;
@@ -114,21 +62,26 @@ int main(){
         switch(option){
             case 1:
                 t = schedule_static_ciclic(V, N, k);
+                fileName = "staticCiclic.dat";
                 break;
 
             case 2:
                 t = schedule_static_blocks(V, N, k);
+                fileName = "staticBlocks.dat";
                 break;
 
             case 3:
                 t = schedule_dynamic(V, N, k);
+                fileName = "dynamic.dat";
                 break;
 
             case 4:
                 t = schedule_guided(V, N, k);
+                fileName = "guided.dat";
                 break;
             default:
                 cout << "No option selected" << endl;
+                fileName = "guided.dat";
                 break;
         }
     }
@@ -151,6 +104,8 @@ int main(){
         cout << "ALL OKS" << endl;
 
     cout << "Calc time: " << t << endl;
+
+    guardarArchivo("output/"+fileName, N, t);
 
     free(V);
     free(A);
