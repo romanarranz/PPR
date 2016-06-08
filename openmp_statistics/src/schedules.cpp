@@ -49,11 +49,10 @@ double schedule_dynamic(int * v, int N, const int k){
     omp_set_dynamic(1);
     omp_set_num_threads(omp_get_num_procs());
 
-    int chunk = N/(2 * omp_get_num_threads());
     int i;
 
     double t1 = omp_get_wtime();
-    #pragma omp parallel for schedule(dynamic,chunk) shared(v,N,chunk) private(i) default(none)
+    #pragma omp parallel for schedule(dynamic) shared(v,N) private(i) default(none)
     for(int i = 0; i<N; i++){
         v[i] = f(v[i]);
     }
